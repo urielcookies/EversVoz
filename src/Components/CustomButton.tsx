@@ -8,7 +8,7 @@ interface CustomButtonProps {
   textStyle?: object;
 }
 
-export default function CustomButton({ title, onPress, style, textStyle }: CustomButtonProps) {
+const CustomButton = ({ title, onPress, style, textStyle }: CustomButtonProps) => {
   return (
     <TouchableOpacity style={[styles.button, style]} onPress={onPress}>
       <Text style={[styles.buttonText, textStyle]}>{title}</Text>
@@ -32,3 +32,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
+export default CustomButton;

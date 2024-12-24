@@ -11,12 +11,7 @@ import Login from '../Screens/Login';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-type AuthStackParamList = {
-  SignUp: undefined;
-  Login: undefined;
-};
-
-export default function BottomTabs() {
+const BottomTabs = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const getTabBarIcon = (routeName: string, focused: boolean) => {
@@ -74,3 +69,5 @@ export default function BottomTabs() {
     </NavigationContainer>
   );
 }
+
+export default BottomTabs;

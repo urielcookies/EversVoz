@@ -2,8 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import InputField from '../Components/InputField';
 import CustomButton from '../Components/CustomButton';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
 
-export default function LoginScreen(props) {
+interface LoginScreenProps {
+  navigation: NavigationProp<ParamListBase>;
+  setIsAuthenticated: (isAuthenticated: boolean) => void;
+}
+
+const LoginScreen = (props: LoginScreenProps) => {
   const { navigation, setIsAuthenticated } = props;
 
   const handleLogin = () => {
@@ -65,3 +71,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
+
+export default LoginScreen;
