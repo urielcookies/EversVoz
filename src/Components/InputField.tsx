@@ -8,7 +8,12 @@ interface InputFieldProps {
   [key: string]: any;
 }
 
-export default function InputField({ placeholder, secureTextEntry = false, keyboardType = 'default', ...props }: InputFieldProps) {
+const InputField = ({
+    placeholder,
+    secureTextEntry = false,
+    keyboardType = 'default',
+    ...props
+  }: InputFieldProps) => {
   return (
     <TextInput
       style={styles.input}
@@ -31,3 +36,5 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
 });
+
+export default InputField;
