@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-
+import { isEqual } from 'lodash';
 import InputField from '../Components/InputField';
 import CustomButton from '../Components/CustomButton';
 
@@ -13,8 +13,26 @@ interface SignUpScreenProps {
 const SignUpScreen = (props: SignUpScreenProps) => {
   const { navigation, setIsAuthenticated } = props;
 
+  const [formDataError, setFormDataError] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    passwordConfirmation: '',
+  });
+
+  const formDataHandler = (field: string, value: string) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      [field]: value,
+    }));
+  };
+
   const handleSignUp = () => {
-    setIsAuthenticated(true);
+    if (isEqual(formData.password, formData.passwordConfirmation)) {
+      setIsAuthenticated(true);
+    } else {
+      setFormDataError(true);
+    }
   };
 
   return (
@@ -27,12 +45,27 @@ const SignUpScreen = (props: SignUpScreenProps) => {
         <Text style={styles.title}>Sign Up</Text>
       </View>
 
-      <InputField placeholder="Username" />
-      <InputField placeholder="Email" keyboardType="email-address" />
-      <InputField placeholder="Password" secureTextEntry />
-      <InputField placeholder="Confirm Password" secureTextEntry />
+      <InputField
+        placeholder="Email"
+        keyboardType="email-address"
+        value={formData.email}
+        onChangeText={(text: string) => formDataHandler('email', text)} />
+
+      <InputField
+        placeholder="Password"
+        secureTextEntry
+        value={formData.password}
+        onChangeText={(text: string) => formDataHandler('password', text)} />
+
+      <InputField
+        placeholder="Confirm Password"
+        secureTextEntry
+        value={formData.passwordConfirmation}
+        error={formDataError}
+        onChangeText={(text: string) => formDataHandler('passwordConfirmation', text)} />
 
       <CustomButton title="Sign Up" onPress={handleSignUp} />
+      {formDataError ? <Text style={styles.errorText}>Passwords do not match</Text> : null}
 
       <Text style={styles.footerText}>
         Already have an account?{' '}
@@ -76,6 +109,10 @@ const styles = StyleSheet.create({
   linkText: {
     color: 'rgba(52,160,171,255)', // Link color matches the button
     fontWeight: 'bold',
+  },
+  errorText: {
+    color: 'red',
+    marginLeft: 10,
   },
 });
 
