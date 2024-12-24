@@ -5,8 +5,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from '../Screens/HomeScreen';
 import ProfileScreen from '../Screens/ProfileScreen';
-import Registration from '../Screens/Registration';
-import Login from '../Screens/Login';
+import SignUpScreen from '../Screens/SignUpScreen';
+import LoginScreen from '../Screens/LoginScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -28,14 +28,14 @@ const BottomTabs = () => {
         name="SignUp"
         options={{ headerShown: false }}>
         {props => (
-          <Registration {...props} setIsAuthenticated={setIsAuthenticated} />
+          <SignUpScreen {...props} setIsAuthenticated={setIsAuthenticated} />
         )}
       </Stack.Screen>
       <Stack.Screen
         name="Login"
         options={{ headerShown: false }} >
           {props => (
-            <Login {...props} setIsAuthenticated={setIsAuthenticated} />
+            <LoginScreen {...props} setIsAuthenticated={setIsAuthenticated} />
           )}
         </Stack.Screen>
       {/* Add other authentication-related screens here */}
