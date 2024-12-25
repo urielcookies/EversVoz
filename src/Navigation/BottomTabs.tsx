@@ -7,6 +7,7 @@ import HomeScreen from '../Screens/HomeScreen';
 import ProfileScreen from '../Screens/ProfileScreen';
 import SignUpScreen from '../Screens/SignUpScreen';
 import SignUpContinueScreen from '../Screens/SignUpContinueScreen';
+import SignUpFinalScreen from '../Screens/SignUpFinalScreen';
 import LoginScreen from '../Screens/LoginScreen';
 
 const Stack = createStackNavigator();
@@ -48,6 +49,15 @@ const BottomTabs = () => {
           <SignUpContinueScreen {...props} />
         )}
       </Stack.Screen>
+
+      <Stack.Screen
+        name="SignUpFinal"
+        options={{ headerShown: false }}>
+        {props => (
+          <SignUpFinalScreen {...props} />
+        )}
+      </Stack.Screen>
+
       {/* Add other authentication-related screens here */}
     </Stack.Navigator>
   );

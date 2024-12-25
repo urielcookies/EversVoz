@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import PhoneInput from 'react-native-phone-input'; // Importing react-native-phone-input
 import InputField from '../Components/InputField';
 import CustomButton from '../Components/CustomButton';
-import { isEmpty, isEqual } from 'lodash';
+import { isEmpty, isEqual, replace } from 'lodash';
 
 interface SignUpContinueScreenProps {
   navigation: NavigationProp<ParamListBase>;
@@ -72,6 +72,17 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
       return;
     }
 
+    const { data, error } = await supabase.auth.signUp({
+      phone: `+${replace(formData.phoneNumber, /\D/g, '')}`,
+      email,
+      password: formData.password,
+      options: {
+        channel: 'sms'
+      }
+    })
+
+    console.log('data-->>', data);
+
     navigation.navigate('SignUpFinal', {
       email,
       phoneNumber: formData.phoneNumber,
@@ -117,7 +128,7 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
         onChangeText={(text: string) => formDataHandler('confirmPassword', text)}
       />
 
-      <CustomButton title="Continue" onPress={handleSignUpContinue} />
+      <CustomButton title="Send OTP" onPress={handleSignUpContinue} />
       {!isEmpty(formDataError)
         ? <Text style={styles.errorText}>{formDataError}</Text>
         : null}
