@@ -63,7 +63,7 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
     }
 
     if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)) {
-      setFormDataError('Password must contain at least one special character');
+      setFormDataError('Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)');
       return;
     }
 
