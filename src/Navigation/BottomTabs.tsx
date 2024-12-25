@@ -25,19 +25,20 @@ const BottomTabs = () => {
   const AuthStack = () => (
     <Stack.Navigator>
       <Stack.Screen
-        name="SignUp"
-        options={{ headerShown: false }}>
-        {props => (
-          <SignUpScreen {...props} setIsAuthenticated={setIsAuthenticated} />
-        )}
-      </Stack.Screen>
-      <Stack.Screen
         name="Login"
         options={{ headerShown: false }} >
           {props => (
             <LoginScreen {...props} setIsAuthenticated={setIsAuthenticated} />
           )}
         </Stack.Screen>
+
+      <Stack.Screen
+        name="SignUp"
+        options={{ headerShown: false }}>
+        {props => (
+          <SignUpScreen {...props} setIsAuthenticated={setIsAuthenticated} />
+        )}
+      </Stack.Screen>
       {/* Add other authentication-related screens here */}
     </Stack.Navigator>
   );

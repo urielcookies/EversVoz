@@ -37,12 +37,15 @@ const SignUpScreen = (props: SignUpScreenProps) => {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.appName}>
+        Evers
+        <Text style={styles.vozColor}>Voz</Text>
+      </Text>
       <View style={styles.logoContainer}>
         <Image
           source={require('../../assets/logo.png')}
           style={styles.logo}
         />
-        <Text style={styles.title}>Sign Up</Text>
       </View>
 
       <InputField
@@ -97,10 +100,6 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     marginBottom: 10,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
   footerText: {
     marginTop: 20,
     fontSize: 14,
@@ -113,6 +112,17 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     marginLeft: 10,
+  },
+  appName: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#333',
+    textAlign: 'center',
+  },
+  vozColor: {
+    color: 'rgba(52,160,171,255)',
+    fontWeight: 'bold',
   },
 });
 
