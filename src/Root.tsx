@@ -1,5 +1,12 @@
 import BottomTabs from './Navigation/BottomTabs';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const Root = () => <BottomTabs />
+const queryClient = new QueryClient();
+
+const Root = () => (
+  <QueryClientProvider client={queryClient}>
+    <BottomTabs />
+  </QueryClientProvider>
+)
 
 export default Root;
