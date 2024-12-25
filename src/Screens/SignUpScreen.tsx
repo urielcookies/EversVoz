@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { isEqual } from 'lodash';
+import { isEmpty, isEqual, isNull } from 'lodash';
+import { createClient } from '@supabase/supabase-js'
 import InputField from '../Components/InputField';
 import CustomButton from '../Components/CustomButton';
-
 interface SignUpScreenProps {
   navigation: NavigationProp<ParamListBase>;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
@@ -12,12 +12,14 @@ interface SignUpScreenProps {
 
 const SignUpScreen = (props: SignUpScreenProps) => {
   const { navigation, setIsAuthenticated } = props;
+  const supabase = createClient(
+    process.env.EXPO_PUBLIC_SUPABASE_URL as string,
+    process.env.EXPO_PUBLIC_SUPABASE_KEY as string,
+  )
 
-  const [formDataError, setFormDataError] = useState(false);
+  const [formDataError, setFormDataError] = useState('');
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
-    passwordConfirmation: '',
   });
 
   const formDataHandler = (field: string, value: string) => {
@@ -27,12 +29,25 @@ const SignUpScreen = (props: SignUpScreenProps) => {
     }));
   };
 
-  const handleSignUp = () => {
-    if (isEqual(formData.password, formData.passwordConfirmation)) {
-      setIsAuthenticated(true);
-    } else {
-      setFormDataError(true);
+  const handleSignUp = async () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      setFormDataError('Please enter a valid email address.');
+      return;
     }
+
+    const { data, error } = await supabase
+      .from('auth.users')
+      .select('id')
+      .eq('email', formData.email)
+      .single();
+
+      if (isNull(data)) {
+        setFormDataError('');
+        navigation.navigate('SignUpContinue', { email: formData.email });
+      } else {
+        setFormDataError('Email is taken');
+      }
   };
 
   return (
@@ -54,21 +69,8 @@ const SignUpScreen = (props: SignUpScreenProps) => {
         value={formData.email}
         onChangeText={(text: string) => formDataHandler('email', text)} />
 
-      <InputField
-        placeholder="Password"
-        secureTextEntry
-        value={formData.password}
-        onChangeText={(text: string) => formDataHandler('password', text)} />
-
-      <InputField
-        placeholder="Confirm Password"
-        secureTextEntry
-        value={formData.passwordConfirmation}
-        error={formDataError}
-        onChangeText={(text: string) => formDataHandler('passwordConfirmation', text)} />
-
       <CustomButton title="Sign Up" onPress={handleSignUp} />
-      {formDataError ? <Text style={styles.errorText}>Passwords do not match</Text> : null}
+      {!isEmpty(formDataError) ? <Text style={styles.errorText}>{formDataError}</Text> : null}
 
       <Text style={styles.footerText}>
         Already have an account?{' '}

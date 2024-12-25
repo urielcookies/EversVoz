@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from '../Screens/HomeScreen';
 import ProfileScreen from '../Screens/ProfileScreen';
 import SignUpScreen from '../Screens/SignUpScreen';
+import SignUpContinueScreen from '../Screens/SignUpContinueScreen';
 import LoginScreen from '../Screens/LoginScreen';
 
 const Stack = createStackNavigator();
@@ -37,6 +38,14 @@ const BottomTabs = () => {
         options={{ headerShown: false }}>
         {props => (
           <SignUpScreen {...props} setIsAuthenticated={setIsAuthenticated} />
+        )}
+      </Stack.Screen>
+
+      <Stack.Screen
+        name="SignUpContinue"
+        options={{ headerShown: false }}>
+        {props => (
+          <SignUpContinueScreen {...props} />
         )}
       </Stack.Screen>
       {/* Add other authentication-related screens here */}
