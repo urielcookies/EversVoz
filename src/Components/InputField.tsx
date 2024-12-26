@@ -11,6 +11,7 @@ interface InputFieldProps {
   onChangeText: (text: string) => void;
   errorMessage?: string;
   error?: boolean;
+  disabled?: boolean;
 }
 
 const InputField = ({
@@ -22,19 +23,21 @@ const InputField = ({
     value,
     onChangeText,
     errorMessage,
-    error = false
+    error = false,
+    disabled = false
   }: InputFieldProps) => {
   return (
     <View style={styles.container}>
       <TextInput
         autoCorrect={autoCorrect}
         autoCapitalize={autoCapitalize}
-        style={[styles.input, error && styles.inputError]}
+        style={[styles.input, error && styles.inputError, disabled && styles.inputDisabled]}
         placeholder={placeholder}
         secureTextEntry={secureTextEntry}
         keyboardType={keyboardType}
         value={value}
-        onChangeText={onChangeText}
+        onChangeText={disabled ? undefined : onChangeText}
+        editable={!disabled}
       />
       {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
     </View>
@@ -56,6 +59,10 @@ const styles = StyleSheet.create({
   },
   inputError: {
     borderColor: 'red',
+  },
+  inputDisabled: {
+    backgroundColor: '#f0f0f0',
+    borderColor: '#ccc',
   },
   errorText: {
     color: 'red',

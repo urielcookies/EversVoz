@@ -1,35 +1,53 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, View } from 'react-native';
 
 interface CustomButtonProps {
   title: string;
   onPress: () => void;
   style?: object;
   textStyle?: object;
+  loading?: boolean;
+  disabled?: boolean;
 }
 
-const CustomButton = ({ title, onPress, style, textStyle }: CustomButtonProps) => {
+const CustomButton = ({ title, onPress, style, textStyle, loading = false, disabled = false }: CustomButtonProps) => {
   return (
-    <TouchableOpacity style={[styles.button, style]} onPress={onPress}>
-      <Text style={[styles.buttonText, textStyle]}>{title}</Text>
+    <TouchableOpacity
+      style={[styles.button, style, disabled && styles.disabledButton]}
+      onPress={loading || disabled ? undefined : onPress} // Disable onPress when loading or disabled
+      activeOpacity={loading || disabled ? 1 : 0.7}>
+      <View style={styles.contentContainer}>
+        {loading && <ActivityIndicator size="small" color="#fff" style={styles.loader} />}
+        <Text style={[styles.buttonText, textStyle]}>{title}</Text>
+      </View>
     </TouchableOpacity>
   );
-}
+};
 
 const styles = StyleSheet.create({
   button: {
     width: '100%',
     height: 50,
-    backgroundColor: 'rgba(52,160,171,255)', // Default button color
+    backgroundColor: 'rgba(52,160,171,255)',
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10, // Space between buttons
+    marginBottom: 10,
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  loader: {
+    marginRight: 8,
+  },
+  contentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  disabledButton: {
+    backgroundColor: '#cccccc',
   },
 });
 
