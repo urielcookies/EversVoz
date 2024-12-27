@@ -72,7 +72,7 @@ const BottomTabs = () => {
             color={color}
           />
         ),
-        headerShown: false,
+        headerShown: true,
         tabBarActiveTintColor: 'rgba(52,160,171,255)',
         tabBarInactiveTintColor: 'gray',
         // headerStyle: { backgroundColor: '#f4511e' },
