@@ -8,12 +8,13 @@ interface CustomButtonProps {
   textStyle?: object;
   loading?: boolean;
   disabled?: boolean;
+  width?: string;
 }
 
-const CustomButton = ({ title, onPress, style, textStyle, loading = false, disabled = false }: CustomButtonProps) => {
+const CustomButton = ({ title, onPress, style, textStyle, loading = false, disabled = false, width='100%' }: CustomButtonProps) => {
   return (
     <TouchableOpacity
-      style={[styles.button, style, disabled && styles.disabledButton]}
+      style={[styles.button, {width}, style, disabled && styles.disabledButton]}
       onPress={loading || disabled ? undefined : onPress} // Disable onPress when loading or disabled
       activeOpacity={loading || disabled ? 1 : 0.7}>
       <View style={styles.contentContainer}>
@@ -26,7 +27,6 @@ const CustomButton = ({ title, onPress, style, textStyle, loading = false, disab
 
 const styles = StyleSheet.create({
   button: {
-    width: '100%',
     height: 50,
     backgroundColor: 'rgba(52,160,171,255)',
     borderRadius: 10,

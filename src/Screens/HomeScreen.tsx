@@ -1,22 +1,31 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { Audio } from 'expo-av';
 import axios from 'axios';
 import InputField from '../Components/InputField';
-import CustomSwitch from '../Components/CustomSwitch';
 import CustomButton from '../Components/CustomButton';
 import { isEmpty, map } from 'lodash';
 
-const EversVozAPI = process.env.EXPO_PUBLIC_EVERSVOZ_API;
+const EversVozAPIURL = process.env.EXPO_PUBLIC_EVERSVOZ_URL;
 const TRANSCRIBE_API = process.env.EXPO_PUBLIC_TRANSCRIBE_API;
+
+interface Response {
+  english_phrase: string,
+  phonetic_explanation: string,
+}
 
 const HomeScreen = () => {
   const [formData, setFormData] = useState({ text: '', lang: 'en' });
-  const [response, setResponse] = useState({
+
+  const [currentSound, setCurrentSound] = useState<Blob | null>(null);
+  const [response, setResponse] = useState<Response>({
     english_phrase: '',
     phonetic_explanation: '',
   });
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [pronounciationLoading, setPronounciationLoading] = useState(false);
+  const [audiFileLoading, setAudiFileLoading] = useState(false);
+
   const [error, setError] = useState('');
 
   const formDataHandler = (field: string, value: string) => {
@@ -34,8 +43,9 @@ const HomeScreen = () => {
 
     try {
       setError('')
-      setIsLoading(true);
-      const results = await axios.post(`${EversVozAPI}/transcribe`, formData, {
+      setPronounciationLoading(true);
+      setAudiFileLoading(true);
+      const results = await axios.post<Response>(`${EversVozAPIURL}/transcribe`, formData, {
         headers: {
           'Content-Type': 'application/json',
           'transcribe-api-key': TRANSCRIBE_API
@@ -43,10 +53,30 @@ const HomeScreen = () => {
       });
 
       setResponse(results.data);
+      setPronounciationLoading(false);
+      formDataHandler('text', '');
+
+      const response = await fetch(`${EversVozAPIURL}/synthesize`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: results.data.english_phrase,
+          language_code: 'es-US',
+          gender: 'MALE',
+          speaking_rate: 0.8,
+          pitch: 0.0,
+          volume_gain_db: 0.0,
+        })
+      })
+
+      const audioFile = await response.blob();
+      setCurrentSound(audioFile)
     } catch (error) {
       console.error('Error:', error);
     } finally {
-      setIsLoading(false);
+      setAudiFileLoading(false);
     }
   };
 
@@ -92,16 +122,36 @@ const HomeScreen = () => {
         <InputField
           value={formData.text}
           placeholder="Enter text to pronounce..."
-          disabled={isLoading}
+          disabled={pronounciationLoading}
           onChangeText={(text) => formDataHandler('text', text)}
           error={!isEmpty(error)}
           errorMessage={!isEmpty(error) ? error : ''} />
 
-        <CustomButton
-          title={isLoading ? '' : 'Get Pronunciation'}
-          loading={isLoading}
-          disabled={isLoading}
-          onPress={handleSubmit}/>
+        <View style={styles.buttonContainer}>
+          <CustomButton
+            title={pronounciationLoading ? '' : 'Get Pronunciation'}
+            loading={pronounciationLoading}
+            disabled={pronounciationLoading}
+            onPress={handleSubmit}
+            width={!isEmpty(response.english_phrase) ? '48%' : '100%'} />
+
+          {!isEmpty(response.english_phrase) && (
+            <CustomButton
+              title={audiFileLoading ? '' : 'Play Sound'}
+              loading={audiFileLoading}
+              disabled={audiFileLoading}
+              onPress={() => {
+                const reader = new FileReader();
+                reader.readAsDataURL(currentSound as Blob);
+                reader.onloadend = async () => {
+                  const base64data = reader.result;
+                  const { sound } = await Audio.Sound.createAsync({ uri: base64data });
+                  sound.playAsync()
+                };
+              }}
+              width='48%' />
+          )}
+        </View>
       </View>
 
       {!isEmpty(response.english_phrase) && (
@@ -142,22 +192,13 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  input: {
-    marginBottom: 12,
-  },
-  submitButton: {
-    backgroundColor: 'rgba(52,160,171,255)',
-    padding: 14,
-    borderRadius: 8,
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  submitButtonDisabled: {
-    backgroundColor: '#A0A0A0',
-  },
-  submitButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
+  playSoundButton: {
+    // marginLeft: 10,
   },
   responseContainer: {
     margin: 16,
