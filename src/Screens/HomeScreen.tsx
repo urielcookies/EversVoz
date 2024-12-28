@@ -18,7 +18,7 @@ const HomeScreen = () => {
   const [inputValue, setInputValue] = useState('');
   const [currentSound, setCurrentSound] = useState<Blob | null>(null);
   const [pronounciationLoading, setPronounciationLoading] = useState(false);
-  const [audiFileLoading, setAudiFileLoading] = useState(false);
+  const [audioFileLoading, setAudioFileLoading] = useState(false);
   const [error, setError] = useState('');
   const [response, setResponse] = useState<Response>({
     english_phrase: '',
@@ -66,7 +66,7 @@ const HomeScreen = () => {
     }
 
     try {
-      setAudiFileLoading(true);
+      setAudioFileLoading(true);
       const response = await fetch(`${EversVozAPIURL}/synthesize`, {
         method: 'POST',
         headers: {
@@ -88,10 +88,10 @@ const HomeScreen = () => {
     }
     catch (error) {
       console.error('Audio Error:', error);
-      setAudiFileLoading(false);
+      setAudioFileLoading(false);
     }
     finally {
-      setAudiFileLoading(false);
+      setAudioFileLoading(false);
     }
   };
 
@@ -136,35 +136,36 @@ const HomeScreen = () => {
       <View style={styles.inputContainer}>
         <InputField
           value={inputValue}
-          placeholder="Enter text to pronounce..."
-          disabled={pronounciationLoading || audiFileLoading}
+          placeholder="Ingresa para pronunciar, español o inglés..."
+          disabled={pronounciationLoading || audioFileLoading}
           onChangeText={setInputValue}
           error={!isEmpty(error)}
           errorMessage={!isEmpty(error) ? error : ''} />
 
         <View style={styles.buttonContainer}>
           <CustomButton
-            title={pronounciationLoading ? '' : 'Get Pronunciation'}
+            title={pronounciationLoading ? '' : 'Pronuncia'}
             loading={pronounciationLoading}
-            disabled={pronounciationLoading || audiFileLoading}
+            disabled={pronounciationLoading || audioFileLoading}
             onPress={handleSubmit}
             width={!isEmpty(response.english_phrase) ? '48%' : '100%'} />
 
           {!isEmpty(response.english_phrase) && (
             <CustomButton
-              title={audiFileLoading ? '' : 'Play Sound'}
-              loading={audiFileLoading}
-              disabled={pronounciationLoading || audiFileLoading}
+              title={audioFileLoading ? '' : 'Sonido'}
+              loading={audioFileLoading}
+              disabled={pronounciationLoading || audioFileLoading}
               onPress={() => {
                 const reader = new FileReader();
                 reader.readAsDataURL(currentSound as Blob);
                 reader.onloadend = async () => {
-                  const base64data = reader.result;
+                  const base64data = reader.result as string;
                   const { sound } = await Audio.Sound.createAsync({ uri: base64data });
                   sound.playAsync()
                 };
               }}
-              width='48%' />
+              width='48%'
+              icon='play-circle-o' />
           )}
         </View>
       </View>
@@ -172,17 +173,17 @@ const HomeScreen = () => {
       {!isEmpty(response.english_phrase) && (
         <View style={styles.responseContainer}>
           <View style={styles.phraseContainer}>
-            <Text style={styles.label}>English Phrase:</Text>
+            <Text style={styles.label}>Frase en inglés:</Text>
             <Text style={styles.phraseText}>{response.english_phrase}</Text>
           </View>
 
           <View style={styles.phoneticContainer}>
-            <Text style={styles.label}>Phonetic Transcription:</Text>
+            <Text style={styles.label}>Transcripción fonética:</Text>
             <Text style={styles.phoneticText}>{getPhoneticText(response.phonetic_explanation)}</Text>
           </View>
 
           <View style={styles.explanationContainer}>
-            <Text style={styles.label}>Pronunciation Guide:</Text>
+            <Text style={styles.label}>Guía de pronunciación:</Text>
             {renderWordExplanation(response.phonetic_explanation)}
           </View>
         </View>
