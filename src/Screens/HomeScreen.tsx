@@ -15,56 +15,68 @@ interface Response {
 }
 
 const HomeScreen = () => {
-  const [formData, setFormData] = useState({ text: '', lang: 'en' });
-
+  const [inputValue, setInputValue] = useState('');
   const [currentSound, setCurrentSound] = useState<Blob | null>(null);
+  const [pronounciationLoading, setPronounciationLoading] = useState(false);
+  const [audiFileLoading, setAudiFileLoading] = useState(false);
+  const [error, setError] = useState('');
   const [response, setResponse] = useState<Response>({
     english_phrase: '',
     phonetic_explanation: '',
   });
 
-  const [pronounciationLoading, setPronounciationLoading] = useState(false);
-  const [audiFileLoading, setAudiFileLoading] = useState(false);
-
-  const [error, setError] = useState('');
-
-  const formDataHandler = (field: string, value: string) => {
-    setFormData(prevState => ({
-      ...prevState,
-      [field]: value,
-    }));
-  };
-
   const handleSubmit = async () => {
-    if (isEmpty(formData.text)) {
+    if (isEmpty(inputValue)) {
       setError('Input field can not be empty');
       return;
     }
+    setError('');
+    const results = await getTranscription();
+    const phrase = results?.data.english_phrase;
+    if (phrase) {
+      getAudio(phrase);
+    }
+  };
 
+  const getTranscription = async () => {
     try {
-      setError('')
       setPronounciationLoading(true);
-      setAudiFileLoading(true);
-      const results = await axios.post<Response>(`${EversVozAPIURL}/transcribe`, formData, {
+      const results = await axios.post<Response>(`${EversVozAPIURL}/transcribe`, {text: inputValue}, {
         headers: {
           'Content-Type': 'application/json',
           'transcribe-api-key': TRANSCRIBE_API
         }
       });
-
       setResponse(results.data);
+      return results;
+    } catch (error: any) {
+      setInputValue('');
       setPronounciationLoading(false);
-      formDataHandler('text', '');
+      console.error('Transcribe Error:', error.response.data.error);
+      setError(error.response.data.error)
+    } finally {
+      setInputValue('');
+      setPronounciationLoading(false);
+    }
+  };
 
+  const getAudio = async (phrase: string) => {
+    if (isEmpty(phrase)) {
+      return;
+    }
+
+    try {
+      setAudiFileLoading(true);
       const response = await fetch(`${EversVozAPIURL}/synthesize`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'transcribe-api-key': TRANSCRIBE_API
         },
         body: JSON.stringify({
-          text: results.data.english_phrase,
-          language_code: 'es-US',
-          gender: 'MALE',
+          text: phrase,
+          language_code: 'en-US',
+          gender: 'FEMALE',
           speaking_rate: 0.8,
           pitch: 0.0,
           volume_gain_db: 0.0,
@@ -73,9 +85,12 @@ const HomeScreen = () => {
 
       const audioFile = await response.blob();
       setCurrentSound(audioFile)
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
+    }
+    catch (error) {
+      console.error('Audio Error:', error);
+      setAudiFileLoading(false);
+    }
+    finally {
       setAudiFileLoading(false);
     }
   };
@@ -120,10 +135,10 @@ const HomeScreen = () => {
     <ScrollView style={styles.container}>
       <View style={styles.inputContainer}>
         <InputField
-          value={formData.text}
+          value={inputValue}
           placeholder="Enter text to pronounce..."
-          disabled={pronounciationLoading}
-          onChangeText={(text) => formDataHandler('text', text)}
+          disabled={pronounciationLoading || audiFileLoading}
+          onChangeText={setInputValue}
           error={!isEmpty(error)}
           errorMessage={!isEmpty(error) ? error : ''} />
 
@@ -131,7 +146,7 @@ const HomeScreen = () => {
           <CustomButton
             title={pronounciationLoading ? '' : 'Get Pronunciation'}
             loading={pronounciationLoading}
-            disabled={pronounciationLoading}
+            disabled={pronounciationLoading || audiFileLoading}
             onPress={handleSubmit}
             width={!isEmpty(response.english_phrase) ? '48%' : '100%'} />
 
@@ -139,7 +154,7 @@ const HomeScreen = () => {
             <CustomButton
               title={audiFileLoading ? '' : 'Play Sound'}
               loading={audiFileLoading}
-              disabled={audiFileLoading}
+              disabled={pronounciationLoading || audiFileLoading}
               onPress={() => {
                 const reader = new FileReader();
                 reader.readAsDataURL(currentSound as Blob);
