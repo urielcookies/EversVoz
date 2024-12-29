@@ -1,12 +1,10 @@
 import BottomTabs from './Navigation/BottomTabs';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-const queryClient = new QueryClient();
+import { DarkModeProvider } from './Contexts/DarkModeContext';
 
 const Root = () => (
-  <QueryClientProvider client={queryClient}>
+  <DarkModeProvider>
     <BottomTabs />
-  </QueryClientProvider>
+  </DarkModeProvider>
 )
 
 export default Root;
