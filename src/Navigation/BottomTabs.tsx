@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useDarkMode } from '../Contexts/DarkModeContext';
 import HomeScreen from '../Screens/HomeScreen';
 import ProfileScreen from '../Screens/ProfileScreen';
 import SignUpScreen from '../Screens/SignUpScreen';
@@ -64,23 +65,35 @@ const BottomTabs = () => {
 
   const BottomTabs = () => (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => (
-          <Ionicons
-            name={getTabBarIcon(route.name, focused) as keyof typeof Ionicons.glyphMap}
-            size={size}
-            color={color}
-          />
-        ),
-        headerShown: true,
-        tabBarActiveTintColor: 'rgba(52,160,171,255)',
-        tabBarInactiveTintColor: 'gray',
-        // headerStyle: { backgroundColor: '#f4511e' },
-        // headerTintColor: '#fff',
-        // headerTitleStyle: { fontWeight: 'bold' },
-      })}>
+      screenOptions={({ route }) => {
+        const { isDarkMode } = useDarkMode();
+
+        return {
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons
+              name={getTabBarIcon(route.name, focused) as keyof typeof Ionicons.glyphMap}
+              size={size}
+              color={color}
+            />
+          ),
+          headerShown: true,
+          tabBarActiveTintColor: isDarkMode ? 'rgba(34,128,144,255)' : 'rgba(52,160,171,255)',
+            tabBarInactiveTintColor: isDarkMode ? '#888888' : 'gray',
+          tabBarStyle: {
+            backgroundColor: isDarkMode ? '#1F1F1F' : '#FFFFFF',
+            borderTopColor: isDarkMode ? '#444444' : '#E0E0E0',
+          },
+          headerStyle: {
+            backgroundColor: isDarkMode ? '#121212' : '#FFFFFF',
+          },
+          headerTintColor: isDarkMode ? '#888888' : '#000000',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        };
+      }}>
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen name="Profile" options={{ tabBarLabel: 'Perfil' }} component={ProfileScreen} />
     </Tab.Navigator>
   )
   return (
