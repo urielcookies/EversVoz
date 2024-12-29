@@ -6,11 +6,11 @@ import CustomSwitch from '../Components/CustomSwitch';
 const ProfileScreen = () => {
   const handleDeleteAccount = () => {
     Alert.alert(
-      "Delete Account",
-      "Are you sure you want to delete your account?",
+      "Eliminar Cuenta",
+      "¿Estás seguro de que deseas eliminar tu cuenta?",
       [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", onPress: () => console.log("Account deleted") }
+        { text: "Cancelar", style: "cancel" },
+        { text: "Eliminar", onPress: () => console.log("Account deleted") }
       ],
       { cancelable: false }
     );
@@ -19,14 +19,14 @@ const ProfileScreen = () => {
   return (
     <View style={styles.container}>
       <View style={styles.row}>
-        <Text style={styles.darkModeText}>Dark Mode</Text>
+        <Text style={styles.darkModeText}>Modo Oscuro</Text>
         <CustomSwitch />
       </View>
 
       <View style={styles.spacer} />
 
       <CustomButton
-        title="Delete Account"
+        title="Eliminar Cuenta"
         color="danger"
         onPress={handleDeleteAccount}
         width="100%"
