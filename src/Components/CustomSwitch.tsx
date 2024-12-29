@@ -5,16 +5,17 @@ type CustomSwitchProps = {
   value?: boolean;
   onValueChange?: (value: boolean) => void;
   disabled?: boolean;
+  label?: string;
 };
 
-const CustomSwitch: React.FC<CustomSwitchProps> = ({ value = false, onValueChange, disabled = false }) => {
+const CustomSwitch: React.FC<CustomSwitchProps> = ({ value = false, onValueChange, disabled = false, label = '' }) => {
   const [switchValue, setSwitchValue] = useState<boolean>(value);
   const translateX = React.useRef(new Animated.Value(value ? 20 : 0)).current;
 
   useEffect(() => {
     Animated.timing(translateX, {
       toValue: switchValue ? 20 : 0,
-      duration: 400, // Slower animation duration
+      duration: 300, // Slower animation duration
       useNativeDriver: true,
     }).start();
   }, [switchValue]);
@@ -31,29 +32,40 @@ const CustomSwitch: React.FC<CustomSwitchProps> = ({ value = false, onValueChang
   };
 
   return (
-    <TouchableOpacity
-      style={[
-        styles.switchContainer,
-        { backgroundColor: switchValue ? 'rgba(52,160,171,255)' : '#ccc' },
-        disabled && styles.disabled,
-      ]}
-      activeOpacity={0.8}
-      onPress={toggleSwitch}
-      disabled={disabled}
-    >
-      <Animated.View
+    <View style={styles.container}>
+      {label ? <Text style={styles.label}>{label}</Text> : null}
+      <TouchableOpacity
         style={[
-          styles.switchThumb,
-          {
-            transform: [{ translateX }],
-          },
+          styles.switchContainer,
+          { backgroundColor: switchValue ? 'rgba(52,160,171,255)' : '#ccc' },
+          disabled && styles.disabled,
         ]}
-      />
-    </TouchableOpacity>
+        activeOpacity={0.8}
+        onPress={toggleSwitch}
+        disabled={disabled} >
+        <Animated.View
+          style={[
+            styles.switchThumb,
+            {
+              transform: [{ translateX }],
+            },
+          ]}
+        />
+      </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  label: {
+    marginRight: 10,
+    fontSize: 16,
+    color: '#333',
+  },
   switchContainer: {
     width: 50,
     height: 30,
