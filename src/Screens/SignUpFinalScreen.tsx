@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { NavigationProp, ParamListBase, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import InputField from '../Components/InputField';
-import CustomButton from '../Components/CustomButton';
+import InputElement from '../Components/InputElement';
+import ButtonElement from '../Components/ButtonElement';
 import { isEmpty } from 'lodash';
 
 interface SignUpFinalScreenProps {
@@ -64,13 +64,13 @@ const SignUpFinalScreen = (props: SignUpFinalScreenProps) => {
         <Text style={styles.title}>{phoneNumber}</Text>
       </View>
 
-      <InputField
+      <InputElement
         placeholder="Enter OTP"
         keyboardType="numeric"
         value={otp}
         onChangeText={(text: string) => setOtp(text)} />
 
-      <CustomButton title="Verify OTP" onPress={handleVerifyOtp} />
+      <ButtonElement title="Verify OTP" onPress={handleVerifyOtp} />
       {!isEmpty(otpError) && <Text style={styles.errorText}>{otpError}</Text>}
 
       <Text style={styles.footerText}>

@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { Audio } from 'expo-av';
 import axios from 'axios';
-import InputField from '../Components/InputField';
-import CustomButton from '../Components/CustomButton';
 import { isEmpty, map } from 'lodash';
+import { useDarkMode } from '../Contexts/DarkModeContext';
+import ScrollViewElement from '../Components/ScrollViewElement';
+import ButtonElement from '../Components/ButtonElement';
+import CardElement from '../Components/CardElement';
+import TextElement from '../Components/TextElement';
+import InputElement from '../Components/InputElement';
 
 const EversVozAPIURL = process.env.EXPO_PUBLIC_EVERSVOZ_URL;
 const TRANSCRIBE_API = process.env.EXPO_PUBLIC_TRANSCRIBE_API;
@@ -15,6 +19,7 @@ interface Response {
 }
 
 const HomeScreen = () => {
+  const { isDarkMode } = useDarkMode();
   const [inputValue, setInputValue] = useState('');
   const [currentSound, setCurrentSound] = useState<Blob | null>(null);
   const [pronounciationLoading, setPronounciationLoading] = useState(false);
@@ -122,19 +127,19 @@ const HomeScreen = () => {
 
       return (
         <View key={index} style={styles.wordSection}>
-          <Text style={styles.wordTitle}>{wordPart.trim()}</Text>
-          <Text style={styles.explanationText}>
+          <TextElement style={styles.wordTitle}>{wordPart.trim()}</TextElement>
+          <TextElement style={styles.explanationText}>
             {explanation.trim()}
-          </Text>
+          </TextElement>
         </View>
       );
     });
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.inputContainer}>
-        <InputField
+    <ScrollViewElement>
+      <CardElement>
+        <InputElement
           value={inputValue}
           placeholder="Ingresa para pronunciar, español o inglés..."
           disabled={pronounciationLoading || audioFileLoading}
@@ -143,7 +148,7 @@ const HomeScreen = () => {
           errorMessage={!isEmpty(error) ? error : ''} />
 
         <View style={styles.buttonContainer}>
-          <CustomButton
+          <ButtonElement
             title={pronounciationLoading ? '' : 'Pronuncia'}
             loading={pronounciationLoading}
             disabled={pronounciationLoading || audioFileLoading}
@@ -151,7 +156,7 @@ const HomeScreen = () => {
             width={!isEmpty(response.english_phrase) ? '48%' : '100%'} />
 
           {!isEmpty(response.english_phrase) && (
-            <CustomButton
+            <ButtonElement
               title={audioFileLoading ? '' : 'Sonido'}
               loading={audioFileLoading}
               disabled={pronounciationLoading || audioFileLoading}
@@ -168,64 +173,57 @@ const HomeScreen = () => {
               icon='play-circle-o' />
           )}
         </View>
-      </View>
+      </CardElement>
 
       {!isEmpty(response.english_phrase) && (
-        <View style={styles.responseContainer}>
+        <CardElement>
           <View style={styles.phraseContainer}>
-            <Text style={styles.label}>Frase en inglés:</Text>
-            <Text style={styles.phraseText}>{response.english_phrase}</Text>
+            <TextElement
+              style={[styles.label, {color: isDarkMode ? '#999999' : '#666'}]}>
+              Frase en inglés:
+            </TextElement>
+            <TextElement
+              style={[styles.phraseText, {color: isDarkMode ? '#FFFFFF' : '#333'}]}>
+              {response.english_phrase}
+            </TextElement>
           </View>
 
-          <View style={styles.phoneticContainer}>
-            <Text style={styles.label}>Transcripción fonética:</Text>
-            <Text style={styles.phoneticText}>{getPhoneticText(response.phonetic_explanation)}</Text>
-          </View>
+          <View style={[styles.phoneticContainer,
+            {
+              backgroundColor: isDarkMode ? '#2A2A2A' : '#F0F7FF',
+              borderColor: isDarkMode ? '#444444' : '#E0E0E0',
+            },
+          ]}>
+          <TextElement style={[styles.label,
+              { color: isDarkMode ? '#999999' : '#666666' },
+          ]}>
+            Transcripción fonética:
+          </TextElement>
+          <TextElement style={[styles.phoneticText,
+            { color: isDarkMode ? '#62AFFF' : '#4A90E2' },
+          ]}>
+            {getPhoneticText(response.phonetic_explanation)}
+          </TextElement>
+        </View>
 
           <View style={styles.explanationContainer}>
-            <Text style={styles.label}>Guía de pronunciación:</Text>
+            <TextElement
+              style={[styles.label, {color: isDarkMode ? '#999999' : '#666'}]}>
+              Guía de pronunciación:
+            </TextElement>
             {renderWordExplanation(response.phonetic_explanation)}
           </View>
-        </View>
+        </CardElement>
       )}
-    </ScrollView>
+    </ScrollViewElement>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  inputContainer: {
-    padding: 16,
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    margin: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  playSoundButton: {
-    // marginLeft: 10,
-  },
-  responseContainer: {
-    margin: 16,
-    backgroundColor: '#ffffff',
-    borderRadius: 8,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   phraseContainer: {
     marginBottom: 16,
@@ -243,18 +241,15 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 4,
     fontWeight: '500',
   },
   phraseText: {
     fontSize: 18,
-    color: '#333',
     fontWeight: '600',
   },
   phoneticText: {
     fontSize: 18,
-    color: '#4A90E2',
     fontWeight: '500',
   },
   wordSection: {
@@ -265,13 +260,11 @@ const styles = StyleSheet.create({
   },
   wordTitle: {
     fontSize: 16,
-    color: '#333',
     fontWeight: '600',
     marginBottom: 8,
   },
   explanationText: {
     fontSize: 15,
-    color: '#444',
     lineHeight: 22,
   },
 });

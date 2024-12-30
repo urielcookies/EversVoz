@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { isEmpty, isEqual, isNull } from 'lodash';
+import { isEmpty, isNull } from 'lodash';
 import { createClient } from '@supabase/supabase-js'
-import InputField from '../Components/InputField';
-import CustomButton from '../Components/CustomButton';
+import InputElement from '../Components/InputElement';
+import ButtonElement from '../Components/ButtonElement';
 interface SignUpScreenProps {
   navigation: NavigationProp<ParamListBase>;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
@@ -63,13 +63,13 @@ const SignUpScreen = (props: SignUpScreenProps) => {
         />
       </View>
 
-      <InputField
+      <InputElement
         placeholder="Email"
         keyboardType="email-address"
         value={formData.email}
         onChangeText={(text: string) => formDataHandler('email', text)} />
 
-      <CustomButton title="Sign Up" onPress={handleSignUp} />
+      <ButtonElement title="Sign Up" onPress={handleSignUp} />
       {!isEmpty(formDataError) ? <Text style={styles.errorText}>{formDataError}</Text> : null}
 
       <Text style={styles.footerText}>

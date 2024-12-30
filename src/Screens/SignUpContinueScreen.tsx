@@ -3,9 +3,9 @@ import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { NavigationProp, ParamListBase, useRoute } from '@react-navigation/native';
 import { createClient } from '@supabase/supabase-js';
 import { Ionicons } from '@expo/vector-icons';
-import PhoneInput from 'react-native-phone-input'; // Importing react-native-phone-input
-import InputField from '../Components/InputField';
-import CustomButton from '../Components/CustomButton';
+import PhoneInput from 'react-native-phone-input';
+import InputElement from '../Components/InputElement';
+import ButtonElement from '../Components/ButtonElement';
 import { isEmpty, isEqual, replace } from 'lodash';
 
 interface SignUpContinueScreenProps {
@@ -115,20 +115,20 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
         onChangePhoneNumber={(text: string) => formDataHandler('phoneNumber', text)}
         autoFormat={true}
       />
-      <InputField
+      <InputElement
         placeholder="Password"
         secureTextEntry
         value={formData.password}
         onChangeText={(text: string) => formDataHandler('password', text)}
       />
-      <InputField
+      <InputElement
         placeholder="Confirm Password"
         secureTextEntry
         value={formData.confirmPassword}
         onChangeText={(text: string) => formDataHandler('confirmPassword', text)}
       />
 
-      <CustomButton title="Send OTP" onPress={handleSignUpContinue} />
+      <ButtonElement title="Send OTP" onPress={handleSignUpContinue} />
       {!isEmpty(formDataError)
         ? <Text style={styles.errorText}>{formDataError}</Text>
         : null}

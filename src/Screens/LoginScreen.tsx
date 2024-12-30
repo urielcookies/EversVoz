@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { createClient } from '@supabase/supabase-js'
-import InputField from '../Components/InputField';
-import CustomButton from '../Components/CustomButton';
+import InputElement from '../Components/InputElement';
+import ButtonElement from '../Components/ButtonElement';
 import { isNull } from 'lodash';
+import ViewElement from '../Components/ViewElement';
+import { useDarkMode } from '../Contexts/DarkModeContext';
 
 interface LoginScreenProps {
   navigation: NavigationProp<ParamListBase>;
@@ -12,6 +14,7 @@ interface LoginScreenProps {
 }
 
 const LoginScreen = (props: LoginScreenProps) => {
+  const { isDarkMode } = useDarkMode();
   const { navigation, setIsAuthenticated } = props;
 
   const supabase = createClient(
@@ -46,30 +49,33 @@ const LoginScreen = (props: LoginScreenProps) => {
   };
 
   return (
-    <View style={styles.container}>
+    <ViewElement style={[styles.container, {backgroundColor: isDarkMode ? '#1F1F1F' : '#fff'}]}>
       <Text style={styles.appName}>
         Evers
         <Text style={styles.vozColor}>Voz</Text>
       </Text>
 
       <Image
-        source={require('../../assets/logo.png')}
+        source={
+          isDarkMode
+          ? require('../../assets/logo-dark.png')
+          : require('../../assets/logo.png')}
         style={styles.logo}
       />
   
-      <InputField
+      <InputElement
         value={formData.email}
         placeholder="Email"
         keyboardType="email-address"
         onChangeText={(text) => formDataHandler('email', text)} />
   
-      <InputField
+      <InputElement
         placeholder="Password"
         secureTextEntry
         value={formData.password}
         onChangeText={(text) => formDataHandler('password', text)} />
   
-      <CustomButton title="Log In" onPress={handleLogin} />
+      <ButtonElement title="Log In" onPress={handleLogin} />
       {formDataError ? <Text style={styles.errorText}>Invalid login credentials</Text> : null}
   
       <Text style={styles.footerText}>
@@ -80,7 +86,7 @@ const LoginScreen = (props: LoginScreenProps) => {
           Sign Up
         </Text>
       </Text>
-    </View>
+    </ViewElement>
   );
 }
 

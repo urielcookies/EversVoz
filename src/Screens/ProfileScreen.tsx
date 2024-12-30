@@ -1,9 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
-import CustomButton from '../Components/CustomButton';
-import CustomSwitch from '../Components/CustomSwitch';
+import { View, StyleSheet, Alert } from 'react-native';
+import ButtonElement from '../Components/ButtonElement';
+import SwitchElement from '../Components/SwitchElement';
+import { useDarkMode } from '../Contexts/DarkModeContext';
+import CardElement from '../Components/CardElement';
+import TextElement from '../Components/TextElement';
 
 const ProfileScreen = () => {
+  const { isDarkMode, toggleDarkMode } = useDarkMode();
+
   const handleDeleteAccount = () => {
     Alert.alert(
       "Eliminar Cuenta",
@@ -17,21 +22,22 @@ const ProfileScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.row}>
-        <Text style={styles.darkModeText}>Modo Oscuro</Text>
-        <CustomSwitch />
-      </View>
+    <View style={[styles.container, { backgroundColor: isDarkMode ? '#121212' : '#f5f5f5' }]}>
+      <CardElement>
+        <View style={styles.row}>
+          <TextElement style={styles.text}>Modo Oscuro</TextElement>
+          <SwitchElement value={isDarkMode} onValueChange={toggleDarkMode} />
+        </View>
 
       <View style={styles.spacer} />
 
-      <CustomButton
-        title="Eliminar Cuenta"
-        color="danger"
-        onPress={handleDeleteAccount}
-        width="100%"
-        icon="trash-o"
-      />
+        <ButtonElement
+          title="Eliminar Cuenta"
+          color="danger"
+          onPress={handleDeleteAccount}
+          width="100%"
+          icon="trash-o" />
+      </CardElement>
     </View>
   );
 };
@@ -41,8 +47,8 @@ const styles = StyleSheet.create({
     flex: 1,
     // justifyContent: 'center',
     // alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    padding: 16,
+    // backgroundColor: '#f5f5f5',
+    // padding: 16,
   },
   title: {
     fontSize: 24,
@@ -54,9 +60,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  darkModeText: {
+  text: {
     fontSize: 18,
-    color: '#333',
     fontWeight: '600',
   },
   spacer: {
