@@ -53,7 +53,7 @@ const LoginScreen = (props: LoginScreenProps) => {
     <ViewElement style={[styles.container, {backgroundColor: isDarkMode ? '#1F1F1F' : '#fff'}]}>
       <TextElement bold style={styles.appName}>
         Evers
-        <TextElement bold style={styles.vozColor}>Voz</TextElement>
+        <TextElement bold color="primary" style={styles.vozColor}>Voz</TextElement>
       </TextElement>
 
       <Image
@@ -77,13 +77,13 @@ const LoginScreen = (props: LoginScreenProps) => {
         onChangeText={(text) => formDataHandler('password', text)} />
   
       <ButtonElement title="Log In" onPress={handleLogin} />
-      {formDataError ? <TextElement fontSize="small" style={styles.errorText}>Invalid login credentials</TextElement> : null}
+      {formDataError ? <TextElement fontSize="small" color="danger" style={styles.errorText}>Invalid login credentials</TextElement> : null}
   
       <TextElement style={styles.footerText}>
         Don't have an account?{' '}
         <TextElement
           bold
-          style={styles.linkText}
+          color="primary"
           onPress={() => navigation.navigate('SignUp')}>
           Sign Up
         </TextElement>
@@ -108,11 +108,7 @@ const styles = StyleSheet.create({
   footerText: {
     marginTop: 20,
   },
-  linkText: {
-    color: 'rgba(52,160,171,255)', // Link color matches the button
-  },
   errorText: {
-    color: 'rgba(255,69,58,255)',
     marginLeft: 10,
   },
   appName: {
@@ -122,7 +118,6 @@ const styles = StyleSheet.create({
   },
   vozColor: {
     fontSize: 30,
-    color: 'rgba(52,160,171,255)',
   },
 });
 

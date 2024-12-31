@@ -1,18 +1,28 @@
 import React from 'react';
 import { Text, StyleSheet, TextStyle, TextProps } from 'react-native';
 import { useDarkMode } from '../Contexts/DarkModeContext';
+import { isUndefined } from 'lodash';
 
 interface TextElementProps extends TextProps {
   children: React.ReactNode;
   style?: TextStyle;
   fontSize?: 'title' | 'body' | 'small';
-  onPress?: () => void; // Add onPress prop
-  bold?: boolean
+  onPress?: () => void;
+  bold?: boolean;
+  color?: 'primary' | 'danger' | 'warning' | 'info' | 'success';
 }
 
-const TextElement: React.FC<TextElementProps> = ({ children, style, fontSize = 'body', onPress, bold=false }) => {
+const TextElement: React.FC<TextElementProps> = (props) => {
+  const {
+    children,
+    style,
+    fontSize = 'body',
+    onPress,
+    bold = false,
+    color
+  } = props;
+
   const { isDarkMode } = useDarkMode();
-  const themeStyles = isDarkMode ? darkStyles : lightStyles;
 
   const fontSizeStyles = {
     title: styles.title,
@@ -20,14 +30,24 @@ const TextElement: React.FC<TextElementProps> = ({ children, style, fontSize = '
     small: styles.small,
   };
 
+  // Determine text color based on theme and provided color prop
+  const textColor =
+    isUndefined(color)
+      ? isDarkMode
+        ? '#CCCCCC'
+        : '#333333'
+      : isDarkMode
+      ? darkTextColor[color]
+      : lightTextColor[color];
+
   return (
     <Text
       style={[
         styles.base,
-        themeStyles.text,
         fontSizeStyles[fontSize],
         bold && styles.bold,
-        style
+        { color: textColor },
+        style,
       ]}
       onPress={onPress}
     >
@@ -55,18 +75,22 @@ const styles = StyleSheet.create({
   },
 });
 
-// Light mode-specific styles
-const lightStyles = StyleSheet.create({
-  text: {
-    color: '#333',
-  },
-});
+// Light mode text colors
+const lightTextColor = {
+  primary: 'rgba(52,160,171,255)',
+  danger: 'rgba(255,69,58,255)',
+  warning: 'rgba(255,193,7,255)',
+  info: 'rgba(0,123,255,255)',
+  success: 'rgba(40,167,69,255)',
+};
 
-// Dark mode-specific styles
-const darkStyles = StyleSheet.create({
-  text: {
-    color: '#CCCCCC',
-  },
-});
+// Dark mode text colors
+const darkTextColor = {
+  primary: 'rgba(34,128,144,255)',
+  danger: 'rgba(200,50,50,255)',
+  warning: 'rgba(204,153,0,255)',
+  info: 'rgba(0,90,204,255)',
+  success: 'rgba(34,139,34,255)',
+};
 
 export default TextElement;
