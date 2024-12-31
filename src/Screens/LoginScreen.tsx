@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { isNull } from 'lodash';
 import { createClient } from '@supabase/supabase-js'
+import { useDarkMode } from '../Contexts/DarkModeContext';
+import TextElement from '../Components/TextElement';
+import ViewElement from '../Components/ViewElement';
 import InputElement from '../Components/InputElement';
 import ButtonElement from '../Components/ButtonElement';
-import { isNull } from 'lodash';
-import ViewElement from '../Components/ViewElement';
-import { useDarkMode } from '../Contexts/DarkModeContext';
-
 interface LoginScreenProps {
   navigation: NavigationProp<ParamListBase>;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
@@ -50,10 +50,10 @@ const LoginScreen = (props: LoginScreenProps) => {
 
   return (
     <ViewElement style={[styles.container, {backgroundColor: isDarkMode ? '#1F1F1F' : '#fff'}]}>
-      <Text style={styles.appName}>
+      <TextElement style={styles.appName}>
         Evers
-        <Text style={styles.vozColor}>Voz</Text>
-      </Text>
+        <TextElement style={styles.vozColor}>Voz</TextElement>
+      </TextElement>
 
       <Image
         source={
@@ -76,16 +76,16 @@ const LoginScreen = (props: LoginScreenProps) => {
         onChangeText={(text) => formDataHandler('password', text)} />
   
       <ButtonElement title="Log In" onPress={handleLogin} />
-      {formDataError ? <Text style={styles.errorText}>Invalid login credentials</Text> : null}
+      {formDataError ? <TextElement fontSize="small" style={styles.errorText}>Invalid login credentials</TextElement> : null}
   
-      <Text style={styles.footerText}>
+      <TextElement style={styles.footerText}>
         Don't have an account?{' '}
-        <Text
+        <TextElement
           style={styles.linkText}
           onPress={() => navigation.navigate('SignUp')}>
           Sign Up
-        </Text>
-      </Text>
+        </TextElement>
+      </TextElement>
     </ViewElement>
   );
 }
@@ -96,7 +96,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#fff',
   },
   logo: {
     width: 120,
@@ -106,25 +105,23 @@ const styles = StyleSheet.create({
   },
   footerText: {
     marginTop: 20,
-    fontSize: 14,
-    color: '#555',
   },
   linkText: {
     color: 'rgba(52,160,171,255)', // Link color matches the button
     fontWeight: 'bold',
   },
   errorText: {
-    color: 'red',
+    color: 'rgba(255,69,58,255)',
     marginLeft: 10,
   },
   appName: {
     fontSize: 30,
     fontWeight: 'bold',
     marginBottom: 10,
-    color: '#333',
     textAlign: 'center',
   },
   vozColor: {
+    fontSize: 30,
     color: 'rgba(52,160,171,255)',
     fontWeight: 'bold',
   },
