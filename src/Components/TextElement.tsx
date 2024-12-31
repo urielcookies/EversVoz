@@ -9,7 +9,7 @@ interface TextElementProps extends TextProps {
   onPress?: () => void; // Add onPress prop
 }
 
-const TextElement: React.FC<TextElementProps> = ({ children, style, fontSize = 'body', onPress }) => {
+const TextElement: React.FC<TextElementProps> = ({ children, style, fontSize = 'body', onPress, bold }) => {
   const { isDarkMode } = useDarkMode();
   const themeStyles = isDarkMode ? darkStyles : lightStyles;
 
@@ -24,8 +24,11 @@ const TextElement: React.FC<TextElementProps> = ({ children, style, fontSize = '
       style={[
         styles.base,
         themeStyles.text,
-        fontSizeStyles[fontSize], style]}
-      onPress={onPress} // Pass onPress prop to Text component
+        fontSizeStyles[fontSize],
+        bold && styles.bold,
+        style
+      ]}
+      onPress={onPress}
     >
       {children}
     </Text>
@@ -46,6 +49,9 @@ const styles = StyleSheet.create({
   small: {
     fontSize: 12,
   },
+  bold: {
+    fontWeight: 'bold',
+  },
 });
 
 // Light mode-specific styles
@@ -58,7 +64,7 @@ const lightStyles = StyleSheet.create({
 // Dark mode-specific styles
 const darkStyles = StyleSheet.create({
   text: {
-    color: '#fff',
+    color: '#CCCCCC',
   },
 });
 
