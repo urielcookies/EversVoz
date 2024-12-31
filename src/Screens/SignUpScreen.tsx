@@ -59,7 +59,7 @@ const SignUpScreen = (props: SignUpScreenProps) => {
     <ViewElement style={[styles.container, {backgroundColor: isDarkMode ? '#1F1F1F' : '#fff'}]}>
       <TextElement bold style={styles.appName}>
         Evers
-        <TextElement bold style={styles.vozColor}>Voz</TextElement>
+        <TextElement bold color="primary" style={styles.vozColor}>Voz</TextElement>
       </TextElement>
       <View style={styles.logoContainer}>
         <Image
@@ -78,12 +78,13 @@ const SignUpScreen = (props: SignUpScreenProps) => {
         onChangeText={(text: string) => formDataHandler('email', text)} />
 
       <ButtonElement title="Sign Up" onPress={handleSignUp} />
-      {!isEmpty(formDataError) ? <Text style={styles.errorText}>{formDataError}</Text> : null}
+      {!isEmpty(formDataError) ? <TextElement color="danger" fontSize="small" style={styles.errorText}>{formDataError}</TextElement> : null}
 
       <TextElement style={styles.footerText}>
         Already have an account?{' '}
         <TextElement
-          style={styles.linkText}
+          bold
+          color="primary"
           onPress={() => navigation.navigate('Login')}>
           Log In
         </TextElement>
@@ -98,7 +99,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#fff',
   },
   logoContainer: {
     alignItems: 'center',
@@ -113,12 +113,7 @@ const styles = StyleSheet.create({
   footerText: {
     marginTop: 20,
   },
-  linkText: {
-    color: 'rgba(52,160,171,255)',
-    fontWeight: 'bold',
-  },
   errorText: {
-    color: 'rgba(255,69,58,255)',
     marginLeft: 10,
   },
   appName: {
@@ -128,7 +123,6 @@ const styles = StyleSheet.create({
   },
   vozColor: {
     fontSize: 30,
-    color: 'rgba(52,160,171,255)',
   },
 });
 
