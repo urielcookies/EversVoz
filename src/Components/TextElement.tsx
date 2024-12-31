@@ -7,9 +7,10 @@ interface TextElementProps extends TextProps {
   style?: TextStyle;
   fontSize?: 'title' | 'body' | 'small';
   onPress?: () => void; // Add onPress prop
+  bold?: boolean
 }
 
-const TextElement: React.FC<TextElementProps> = ({ children, style, fontSize = 'body', onPress, bold }) => {
+const TextElement: React.FC<TextElementProps> = ({ children, style, fontSize = 'body', onPress, bold=false }) => {
   const { isDarkMode } = useDarkMode();
   const themeStyles = isDarkMode ? darkStyles : lightStyles;
 
