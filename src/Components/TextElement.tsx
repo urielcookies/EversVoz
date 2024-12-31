@@ -1,14 +1,15 @@
 import React from 'react';
-import { Text, StyleSheet, TextStyle } from 'react-native';
+import { Text, StyleSheet, TextStyle, TextProps } from 'react-native';
 import { useDarkMode } from '../Contexts/DarkModeContext';
 
-interface TextElementProps {
+interface TextElementProps extends TextProps {
   children: React.ReactNode;
-  style?: TextStyle | TextStyle[];
+  style?: TextStyle;
   fontSize?: 'title' | 'body' | 'small';
+  onPress?: () => void; // Add onPress prop
 }
 
-const TextElement: React.FC<TextElementProps> = ({ children, style, fontSize = 'body' }) => {
+const TextElement: React.FC<TextElementProps> = ({ children, style, fontSize = 'body', onPress }) => {
   const { isDarkMode } = useDarkMode();
   const themeStyles = isDarkMode ? darkStyles : lightStyles;
 
@@ -23,7 +24,9 @@ const TextElement: React.FC<TextElementProps> = ({ children, style, fontSize = '
       style={[
         styles.base,
         themeStyles.text,
-        fontSizeStyles[fontSize], style]}>
+        fontSizeStyles[fontSize], style]}
+      onPress={onPress} // Pass onPress prop to Text component
+    >
       {children}
     </Text>
   );
