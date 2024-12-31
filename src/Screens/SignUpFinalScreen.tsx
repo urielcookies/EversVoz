@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { NavigationProp, ParamListBase, useRoute } from '@react-navigation/native';
+import { isEmpty } from 'lodash';
 import { Ionicons } from '@expo/vector-icons';
+import { useDarkMode } from '../Contexts/DarkModeContext';
+import ViewElement from '../Components/ViewElement';
+import TextElement from '../Components/TextElement';
 import InputElement from '../Components/InputElement';
 import ButtonElement from '../Components/ButtonElement';
-import { isEmpty } from 'lodash';
 
 interface SignUpFinalScreenProps {
   navigation: NavigationProp<ParamListBase>;
@@ -12,6 +15,7 @@ interface SignUpFinalScreenProps {
 
 const SignUpFinalScreen = (props: SignUpFinalScreenProps) => {
   const { navigation } = props;
+  const { isDarkMode } = useDarkMode();
   const route = useRoute();
   const { email, phoneNumber, password } = route.params;
 
@@ -46,22 +50,25 @@ const SignUpFinalScreen = (props: SignUpFinalScreenProps) => {
   };
 
   return (
-    <View style={styles.container}>
+    <ViewElement style={[styles.container, {backgroundColor: isDarkMode ? '#1F1F1F' : '#fff'}]}>
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back-circle" size={32} color="rgba(52,160,171,255)" />
       </TouchableOpacity>
-      <Text style={styles.appName}>
+      <TextElement style={styles.appName}>
         Evers
-        <Text style={styles.vozColor}>Voz</Text>
-      </Text>
+        <TextElement style={styles.vozColor}>Voz</TextElement>
+      </TextElement>
       <View style={styles.logoContainer}>
         <Image
-          source={require('../../assets/logo.png')}
+          source={
+            isDarkMode
+            ? require('../../assets/logo-dark.png')
+            : require('../../assets/logo.png')}
           style={styles.logo}
         />
-        <Text style={styles.title}>{phoneNumber}</Text>
+        <TextElement bold style={styles.title}>{phoneNumber}</TextElement>
       </View>
 
       <InputElement
@@ -71,17 +78,18 @@ const SignUpFinalScreen = (props: SignUpFinalScreenProps) => {
         onChangeText={(text: string) => setOtp(text)} />
 
       <ButtonElement title="Verify OTP" onPress={handleVerifyOtp} />
-      {!isEmpty(otpError) && <Text style={styles.errorText}>{otpError}</Text>}
+      {!isEmpty(otpError) && <TextElement color="danger" fontSize="small" style={styles.errorText}>{otpError}</TextElement>}
 
-      <Text style={styles.footerText}>
+      <TextElement style={styles.footerText}>
         Didn't receive an OTP?{' '}
-        <Text
-          style={styles.linkText}
+        <TextElement
+          bold
+          color="primary"
           onPress={handleSendOtp}>
           Resend OTP
-        </Text>
-      </Text>
-    </View>
+        </TextElement>
+      </TextElement>
+    </ViewElement>
   );
 };
 
@@ -91,7 +99,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#fff',
   },
   backButton: {
     position: 'absolute',
@@ -111,30 +118,20 @@ const styles = StyleSheet.create({
   footerText: {
     marginTop: 20,
     fontSize: 14,
-    color: '#555',
-  },
-  linkText: {
-    color: 'rgba(52,160,171,255)',
-    fontWeight: 'bold',
   },
   errorText: {
-    color: 'red',
     marginLeft: 10,
   },
   appName: {
     fontSize: 30,
-    fontWeight: 'bold',
     marginBottom: 10,
-    color: '#333',
     textAlign: 'center',
   },
   vozColor: {
-    color: 'rgba(52,160,171,255)',
-    fontWeight: 'bold',
+    fontSize: 30,
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
   },
 });
 
