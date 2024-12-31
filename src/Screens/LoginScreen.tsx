@@ -8,6 +8,7 @@ import TextElement from '../Components/TextElement';
 import ViewElement from '../Components/ViewElement';
 import InputElement from '../Components/InputElement';
 import ButtonElement from '../Components/ButtonElement';
+
 interface LoginScreenProps {
   navigation: NavigationProp<ParamListBase>;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
