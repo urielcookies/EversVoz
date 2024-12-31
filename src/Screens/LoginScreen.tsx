@@ -51,9 +51,9 @@ const LoginScreen = (props: LoginScreenProps) => {
 
   return (
     <ViewElement style={[styles.container, {backgroundColor: isDarkMode ? '#1F1F1F' : '#fff'}]}>
-      <TextElement style={styles.appName}>
+      <TextElement bold style={styles.appName}>
         Evers
-        <TextElement style={styles.vozColor}>Voz</TextElement>
+        <TextElement bold style={styles.vozColor}>Voz</TextElement>
       </TextElement>
 
       <Image
@@ -82,6 +82,7 @@ const LoginScreen = (props: LoginScreenProps) => {
       <TextElement style={styles.footerText}>
         Don't have an account?{' '}
         <TextElement
+          bold
           style={styles.linkText}
           onPress={() => navigation.navigate('SignUp')}>
           Sign Up
@@ -109,7 +110,6 @@ const styles = StyleSheet.create({
   },
   linkText: {
     color: 'rgba(52,160,171,255)', // Link color matches the button
-    fontWeight: 'bold',
   },
   errorText: {
     color: 'rgba(255,69,58,255)',
@@ -117,14 +117,12 @@ const styles = StyleSheet.create({
   },
   appName: {
     fontSize: 30,
-    fontWeight: 'bold',
     marginBottom: 10,
     textAlign: 'center',
   },
   vozColor: {
     fontSize: 30,
     color: 'rgba(52,160,171,255)',
-    fontWeight: 'bold',
   },
 });
 

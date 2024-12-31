@@ -5,12 +5,17 @@ import { isEmpty, isNull } from 'lodash';
 import { createClient } from '@supabase/supabase-js'
 import InputElement from '../Components/InputElement';
 import ButtonElement from '../Components/ButtonElement';
+import TextElement from '../Components/TextElement';
+import ViewElement from '../Components/ViewElement';
+import { useDarkMode } from '../Contexts/DarkModeContext';
+
 interface SignUpScreenProps {
   navigation: NavigationProp<ParamListBase>;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
 }
 
 const SignUpScreen = (props: SignUpScreenProps) => {
+  const { isDarkMode } = useDarkMode();
   const { navigation, setIsAuthenticated } = props;
   const supabase = createClient(
     process.env.EXPO_PUBLIC_SUPABASE_URL as string,
@@ -51,14 +56,17 @@ const SignUpScreen = (props: SignUpScreenProps) => {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.appName}>
+    <ViewElement style={[styles.container, {backgroundColor: isDarkMode ? '#1F1F1F' : '#fff'}]}>
+      <TextElement bold style={styles.appName}>
         Evers
-        <Text style={styles.vozColor}>Voz</Text>
-      </Text>
+        <TextElement bold style={styles.vozColor}>Voz</TextElement>
+      </TextElement>
       <View style={styles.logoContainer}>
         <Image
-          source={require('../../assets/logo.png')}
+          source={
+            isDarkMode
+            ? require('../../assets/logo-dark.png')
+            : require('../../assets/logo.png')}
           style={styles.logo}
         />
       </View>
@@ -72,15 +80,15 @@ const SignUpScreen = (props: SignUpScreenProps) => {
       <ButtonElement title="Sign Up" onPress={handleSignUp} />
       {!isEmpty(formDataError) ? <Text style={styles.errorText}>{formDataError}</Text> : null}
 
-      <Text style={styles.footerText}>
+      <TextElement style={styles.footerText}>
         Already have an account?{' '}
-        <Text
+        <TextElement
           style={styles.linkText}
           onPress={() => navigation.navigate('Login')}>
           Log In
-        </Text>
-      </Text>
-    </View>
+        </TextElement>
+      </TextElement>
+    </ViewElement>
   );
 }
 
@@ -104,27 +112,23 @@ const styles = StyleSheet.create({
   },
   footerText: {
     marginTop: 20,
-    fontSize: 14,
-    color: '#555',
   },
   linkText: {
-    color: 'rgba(52,160,171,255)', // Link color matches the button
+    color: 'rgba(52,160,171,255)',
     fontWeight: 'bold',
   },
   errorText: {
-    color: 'red',
+    color: 'rgba(255,69,58,255)',
     marginLeft: 10,
   },
   appName: {
     fontSize: 30,
-    fontWeight: 'bold',
     marginBottom: 10,
-    color: '#333',
     textAlign: 'center',
   },
   vozColor: {
+    fontSize: 30,
     color: 'rgba(52,160,171,255)',
-    fontWeight: 'bold',
   },
 });
 
