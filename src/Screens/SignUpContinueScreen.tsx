@@ -7,6 +7,9 @@ import PhoneInput from 'react-native-phone-input';
 import InputElement from '../Components/InputElement';
 import ButtonElement from '../Components/ButtonElement';
 import { isEmpty, isEqual, replace } from 'lodash';
+import ViewElement from '../Components/ViewElement';
+import { useDarkMode } from '../Contexts/DarkModeContext';
+import TextElement from '../Components/TextElement';
 
 interface SignUpContinueScreenProps {
   navigation: NavigationProp<ParamListBase>;
@@ -14,6 +17,7 @@ interface SignUpContinueScreenProps {
 
 const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
   const { navigation } = props;
+  const { isDarkMode } = useDarkMode();
   const route = useRoute();
   const { email } = route.params;
 
@@ -81,8 +85,6 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
       }
     })
 
-    console.log('data-->>', data);
-
     navigation.navigate('SignUpFinal', {
       email,
       phoneNumber: formData.phoneNumber,
@@ -90,27 +92,41 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
     });
   };
 
+  const phoneStyles = isDarkMode
+  ? {
+    backgroundColor: '#1F1F1F',
+    borderColor: '#444',
+    }
+  : {
+    backgroundColor: '#FFFFFF',
+    borderColor: '#DDD',
+  }
+
   return (
-    <View style={styles.container}>
+    <ViewElement style={[styles.container, {backgroundColor: isDarkMode ? '#1F1F1F' : '#fff'}]}>
       <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back-circle" size={32} color="rgba(52,160,171,255)" />
       </TouchableOpacity>
-      <Text style={styles.appName}>
+      <TextElement bold style={styles.appName}>
         Evers
-        <Text style={styles.vozColor}>Voz</Text>
-      </Text>
+        <TextElement bold color="primary" style={styles.vozColor}>Voz</TextElement>
+      </TextElement>
       <View style={styles.logoContainer}>
         <Image
-          source={require('../../assets/logo.png')}
+          source={
+            isDarkMode
+            ? require('../../assets/logo-dark.png')
+            : require('../../assets/logo.png')}
           style={styles.logo}
         />
-        <Text style={styles.title}>{email}</Text>
+        <TextElement bold style={styles.title}>{email}</TextElement>
       </View>
 
       <PhoneInput
-        style={styles.phoneInput}
+        style={[styles.phoneInput, phoneStyles]}
+        textStyle={{ color: isDarkMode ? '#FFFFFF' : '#333' }}
         initialCountry="us"
         onChangePhoneNumber={(text: string) => formDataHandler('phoneNumber', text)}
         autoFormat={true}
@@ -130,18 +146,19 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
 
       <ButtonElement title="Send OTP" onPress={handleSignUpContinue} />
       {!isEmpty(formDataError)
-        ? <Text style={styles.errorText}>{formDataError}</Text>
+        ? <TextElement color="danger" style={styles.errorText}>{formDataError}</TextElement>
         : null}
 
-      <Text style={styles.footerText}>
+      <TextElement style={styles.footerText}>
         Already have an account?{' '}
-        <Text
-          style={styles.linkText}
+        <TextElement
+          bold
+          color="primary"
           onPress={() => navigation.navigate('Login')}>
           Log In
-        </Text>
-      </Text>
-    </View>
+        </TextElement>
+      </TextElement>
+    </ViewElement>
   );
 };
 
@@ -151,7 +168,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
-    backgroundColor: '#fff',
   },
   backButton: {
     position: 'absolute',
@@ -173,37 +189,25 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 1,
     height: 50,
-    borderColor: '#ddd',
     borderRadius: 10,
     paddingHorizontal: 15,
   },
   footerText: {
     marginTop: 20,
-    fontSize: 14,
-    color: '#555',
-  },
-  linkText: {
-    color: 'rgba(52,160,171,255)', // Link color matches the button
-    fontWeight: 'bold',
   },
   errorText: {
-    color: 'red',
     marginLeft: 10,
   },
   appName: {
     fontSize: 30,
-    fontWeight: 'bold',
     marginBottom: 10,
-    color: '#333',
     textAlign: 'center',
   },
   vozColor: {
-    color: 'rgba(52,160,171,255)',
-    fontWeight: 'bold',
+    fontSize: 30,
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
   },
 });
 
