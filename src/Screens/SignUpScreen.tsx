@@ -70,21 +70,21 @@ const SignUpScreen = (props: SignUpScreenProps) => {
       </View>
 
       <InputElement
-        placeholder="Email"
+        placeholder="Correo Electrónico"
         keyboardType="email-address"
         value={formData.email}
         onChangeText={(text: string) => formDataHandler('email', text)} />
 
-      <ButtonElement title="Sign Up" loading={isLoading} disabled={isLoading} onPress={handleSignUp} />
+      <ButtonElement title="Regístrate" loading={isLoading} disabled={isLoading} onPress={handleSignUp} />
       {!isEmpty(formDataError) ? <TextElement color="danger" fontSize="small" style={styles.errorText}>{formDataError}</TextElement> : null}
 
       <TextElement style={styles.footerText}>
-        Already have an account?{' '}
+        ¿Ya tienes una cuenta?{' '}
         <TextElement
           bold
           color="primary"
           onPress={() => navigation.navigate('Login')}>
-          Log In
+          Iniciar Sesión
         </TextElement>
       </TextElement>
     </ViewElement>
