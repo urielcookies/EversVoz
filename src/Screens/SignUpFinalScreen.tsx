@@ -97,21 +97,21 @@ const SignUpFinalScreen = (props: SignUpFinalScreenProps) => {
       </View>
 
       <InputElement
-        placeholder="Enter OTP"
+        placeholder="Ingresar Código"
         keyboardType="numeric"
         value={otp}
         onChangeText={(text: string) => setOtp(text)} />
 
-      <ButtonElement title="Verify OTP" onPress={handleVerifyOtp} />
+      <ButtonElement title="Verificar Código" onPress={handleVerifyOtp} />
       {!isEmpty(otpError) && <TextElement color="danger" fontSize="small" style={styles.errorText}>{otpError}</TextElement>}
 
       <TextElement style={styles.footerText}>
-        Didn't receive an OTP?{' '}
+        ¿No recibiste un código?{' '}
         <TextElement
           bold
           color="primary"
           onPress={handleSendOtp}>
-          Resend OTP
+          Reenviar Código
         </TextElement>
       </TextElement>
     </ViewElement>
