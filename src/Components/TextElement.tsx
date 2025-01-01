@@ -5,7 +5,7 @@ import { isUndefined } from 'lodash';
 
 interface TextElementProps extends TextProps {
   children: React.ReactNode;
-  style?: TextStyle;
+  style?: TextStyle | TextStyle[];
   fontSize?: 'title' | 'body' | 'small';
   onPress?: () => void;
   bold?: boolean;
