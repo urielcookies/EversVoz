@@ -116,6 +116,7 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
   return (
     <ViewElement style={[styles.container, {backgroundColor: isDarkMode ? '#1F1F1F' : '#fff'}]}>
       <TouchableOpacity
+        disabled={isLoading}
         style={styles.backButton}
         onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back-circle" size={32} color="rgba(52,160,171,255)" />

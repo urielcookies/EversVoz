@@ -17,7 +17,7 @@ const ProfileScreen = () => {
       "¿Estás seguro de que deseas eliminar tu cuenta?",
       [
         { text: "Cancelar", style: "cancel" },
-        { text: "Eliminar", onPress: () => console.log("Account deleted") }
+        { text: "Eliminar", style: 'destructive', onPress: () => console.log("Account deleted") }
       ],
       { cancelable: false }
     );

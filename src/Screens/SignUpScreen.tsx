@@ -31,25 +31,24 @@ const SignUpScreen = (props: SignUpScreenProps) => {
   };
 
   const handleSignUp = async () => {
-    setIsLoading(true);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
-      setFormDataError('Please enter a valid email address.');
+      setFormDataError('Por favor, ingresa una dirección de correo electrónico válida');
       return;
     }
 
+    setIsLoading(true);
     const { data, error } = await supabase
       .from('auth.users')
       .select('id')
       .eq('email', formData.email)
       .single();
-
+      setIsLoading(false);
       if (isNull(data)) {
         setFormDataError('');
-        setIsLoading(false);
         navigation.navigate('SignUpContinue', { email: formData.email });
       } else {
-        setFormDataError('Email is taken');
+        setFormDataError('El correo electrónico ya está en uso');
       }
   };
 
