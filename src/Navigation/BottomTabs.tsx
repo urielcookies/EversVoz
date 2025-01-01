@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useDarkMode } from '../Contexts/DarkModeContext';
+import { useUserSession } from '../Contexts/UserSessionContext';
 import HomeScreen from '../Screens/HomeScreen';
 import ProfileScreen from '../Screens/ProfileScreen';
 import SignUpScreen from '../Screens/SignUpScreen';
@@ -14,9 +15,9 @@ import LoginScreen from '../Screens/LoginScreen';
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const BottomTabs = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+const BottomTabs = () => {
+  const { session } = useUserSession();
   const getTabBarIcon = (routeName: string, focused: boolean) => {
     const icons: { [key: string]: string } = {
       Home: focused ? 'home' : 'home-outline',
@@ -31,7 +32,7 @@ const BottomTabs = () => {
         name="Login"
         options={{ headerShown: false }} >
           {props => (
-            <LoginScreen {...props} setIsAuthenticated={setIsAuthenticated} />
+            <LoginScreen {...props} />
           )}
         </Stack.Screen>
 
@@ -39,7 +40,7 @@ const BottomTabs = () => {
         name="SignUp"
         options={{ headerShown: false }}>
         {props => (
-          <SignUpScreen {...props} setIsAuthenticated={setIsAuthenticated} />
+          <SignUpScreen {...props} />
         )}
       </Stack.Screen>
 
@@ -96,9 +97,10 @@ const BottomTabs = () => {
       <Tab.Screen name="Profile" options={{ tabBarLabel: 'Perfil' }} component={ProfileScreen} />
     </Tab.Navigator>
   )
+
   return (
     <NavigationContainer>
-      {isAuthenticated ? <BottomTabs /> : <AuthStack />}
+      {session ? <BottomTabs /> : <AuthStack />}
     </NavigationContainer>
   );
 }
