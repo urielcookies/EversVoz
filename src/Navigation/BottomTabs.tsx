@@ -93,7 +93,7 @@ const BottomTabs = () => {
           },
         };
       }}>
-      <Tab.Screen name="Home" component={HomeScreen} />
+      <Tab.Screen name="Home" options={{ tabBarLabel: 'Inicio' }} component={HomeScreen} />
       <Tab.Screen name="Profile" options={{ tabBarLabel: 'Perfil' }} component={ProfileScreen} />
     </Tab.Navigator>
   )
