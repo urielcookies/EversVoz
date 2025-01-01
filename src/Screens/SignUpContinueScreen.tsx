@@ -43,32 +43,32 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
 
   const handleSignUpContinue = async () => {
     if (!isEqual(formData.password, formData.confirmPassword)) {
-      setFormDataError('Passwords do not match');
+      setFormDataError('Las contraseñas no coinciden');
       return;
     }
-
+    
     if (formData.password.length < 6) {
-      setFormDataError('Password must be at least 6 characters long');
+      setFormDataError('La contraseña debe tener al menos 6 caracteres');
       return;
     }
-
+    
     if (!/[A-Z]/.test(formData.password)) {
-      setFormDataError('Password must contain at least one uppercase letter');
+      setFormDataError('La contraseña debe contener al menos una letra mayúscula');
       return;
     }
-
+    
     if (!/[a-z]/.test(formData.password)) {
-      setFormDataError('Password must contain at least one lowercase letter');
+      setFormDataError('La contraseña debe contener al menos una letra minúscula');
       return;
     }
-
+    
     if (!/[0-9]/.test(formData.password)) {
-      setFormDataError('Password must contain at least one number');
+      setFormDataError('La contraseña debe contener al menos un número');
       return;
     }
-
+    
     if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)) {
-      setFormDataError('Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)');
+      setFormDataError('La contraseña debe contener al menos un carácter especial (!@#$%^&*(),.?":{}|<>)');
       return;
     }
 
@@ -96,7 +96,6 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
     if (!isNull(error)) {
       setFormDataError(error.message);
     } else {
-      setFormDataError('Email is taken');
       navigation.navigate('SignUpFinal', {
         email,
         password: formData.password,
@@ -144,30 +143,30 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
         autoFormat={true}
       /> */}
       <InputElement
-        placeholder="Password"
+        placeholder="Contraseña"
         secureTextEntry
         value={formData.password}
         onChangeText={(text: string) => formDataHandler('password', text)}
       />
       <InputElement
-        placeholder="Confirm Password"
+        placeholder="Confirmar Contraseña"
         secureTextEntry
         value={formData.confirmPassword}
         onChangeText={(text: string) => formDataHandler('confirmPassword', text)}
       />
 
-      <ButtonElement title="Send OTP" loading={isLoading} disabled={isLoading} onPress={handleSignUpContinue} />
+      <ButtonElement title="Enviar código a correo electronico" loading={isLoading} disabled={isLoading} onPress={handleSignUpContinue} />
       {!isEmpty(formDataError)
         ? <TextElement color="danger" fontSize="small" style={styles.errorText}>{formDataError}</TextElement>
         : null}
 
       <TextElement style={styles.footerText}>
-        Already have an account?{' '}
+        ¿Ya tienes una cuenta?{' '}
         <TextElement
           bold
           color="primary"
           onPress={() => navigation.navigate('Login')}>
-          Log In
+          Iniciar sesión
         </TextElement>
       </TextElement>
     </ViewElement>
