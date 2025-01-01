@@ -5,9 +5,11 @@ import SwitchElement from '../Components/SwitchElement';
 import { useDarkMode } from '../Contexts/DarkModeContext';
 import CardElement from '../Components/CardElement';
 import TextElement from '../Components/TextElement';
+import { useUserSession } from '../Contexts/UserSessionContext';
 
 const ProfileScreen = () => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
+  const { logout } = useUserSession();
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -31,6 +33,12 @@ const ProfileScreen = () => {
 
       <View style={styles.spacer} />
 
+      <ButtonElement
+          title="Finalizar La Sesión"
+          onPress={logout}
+          width="100%"
+          icon="sign-out" />
+
         <ButtonElement
           title="Eliminar Cuenta"
           color="danger"
@@ -45,10 +53,6 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // justifyContent: 'center',
-    // alignItems: 'center',
-    // backgroundColor: '#f5f5f5',
-    // padding: 16,
   },
   title: {
     fontSize: 24,
@@ -65,7 +69,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   spacer: {
-    height: 20, // Adjust the height as needed
+    height: 20,
   },
 });
 

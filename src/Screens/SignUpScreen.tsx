@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { isEmpty, isNull } from 'lodash';
-import { createClient } from '@supabase/supabase-js'
+import { supabase } from '../Utils/supabase';
 import InputElement from '../Components/InputElement';
 import ButtonElement from '../Components/ButtonElement';
 import TextElement from '../Components/TextElement';
@@ -11,17 +11,13 @@ import { useDarkMode } from '../Contexts/DarkModeContext';
 
 interface SignUpScreenProps {
   navigation: NavigationProp<ParamListBase>;
-  setIsAuthenticated: (isAuthenticated: boolean) => void;
 }
 
 const SignUpScreen = (props: SignUpScreenProps) => {
-  const { isDarkMode } = useDarkMode();
-  const { navigation, setIsAuthenticated } = props;
-  const supabase = createClient(
-    process.env.EXPO_PUBLIC_SUPABASE_URL as string,
-    process.env.EXPO_PUBLIC_SUPABASE_KEY as string,
-  )
+  const { navigation } = props;
 
+  const { isDarkMode } = useDarkMode();
+  const [isLoading, setIsLoading] = useState(false);
   const [formDataError, setFormDataError] = useState('');
   const [formData, setFormData] = useState({
     email: '',
@@ -35,6 +31,7 @@ const SignUpScreen = (props: SignUpScreenProps) => {
   };
 
   const handleSignUp = async () => {
+    setIsLoading(true);
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       setFormDataError('Please enter a valid email address.');
@@ -49,6 +46,7 @@ const SignUpScreen = (props: SignUpScreenProps) => {
 
       if (isNull(data)) {
         setFormDataError('');
+        setIsLoading(false);
         navigation.navigate('SignUpContinue', { email: formData.email });
       } else {
         setFormDataError('Email is taken');
@@ -77,7 +75,7 @@ const SignUpScreen = (props: SignUpScreenProps) => {
         value={formData.email}
         onChangeText={(text: string) => formDataHandler('email', text)} />
 
-      <ButtonElement title="Sign Up" onPress={handleSignUp} />
+      <ButtonElement title="Sign Up" loading={isLoading} disabled={isLoading} onPress={handleSignUp} />
       {!isEmpty(formDataError) ? <TextElement color="danger" fontSize="small" style={styles.errorText}>{formDataError}</TextElement> : null}
 
       <TextElement style={styles.footerText}>

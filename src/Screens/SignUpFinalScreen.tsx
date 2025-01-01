@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { NavigationProp, ParamListBase, useRoute } from '@react-navigation/native';
+import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { NavigationProp, ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
 import { isEmpty } from 'lodash';
 import { Ionicons } from '@expo/vector-icons';
+import { supabase } from '../Utils/supabase';
+import { useUserSession } from '../Contexts/UserSessionContext';
 import { useDarkMode } from '../Contexts/DarkModeContext';
 import ViewElement from '../Components/ViewElement';
 import TextElement from '../Components/TextElement';
@@ -13,21 +15,28 @@ interface SignUpFinalScreenProps {
   navigation: NavigationProp<ParamListBase>;
 }
 
+interface RouteParams {
+  email: string;
+}
+
 const SignUpFinalScreen = (props: SignUpFinalScreenProps) => {
   const { navigation } = props;
+  const { setSession } = useUserSession();
   const { isDarkMode } = useDarkMode();
-  const route = useRoute();
-  const { email, phoneNumber, password } = route.params;
+  const route = useRoute<RouteProp<{ params: RouteParams }>>();
+  const { email } = route.params;
 
   const [otp, setOtp] = useState('');
   const [otpError, setOtpError] = useState('');
 
-  const handleSendOtp = () => {
-    // Simulate sending OTP
-    console.log('Sending OTP to:', phoneNumber);
+  const handleSendOtp = async () => {
+    await supabase.auth.resend({
+      email,
+      type: 'signup',
+    });
   };
 
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = async () => {
     if (isEmpty(otp)) {
       setOtpError('OTP cannot be empty');
       return;
@@ -38,15 +47,31 @@ const SignUpFinalScreen = (props: SignUpFinalScreenProps) => {
       return;
     }
 
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token: otp,
+      type: 'email',
+    });
+  
+    // if (data.user) {
+    //   await supabaseAdmin.auth.admin.updateUserById(
+    //     data.user.id,
+    //     { phone: `+${phoneNumber.replace(/\D/g, '')}` }
+    //   )
+    // }
+
+    if (error) {
+      setOtpError(error.message);
+      return false;
+    } else {
+      setSession(data.session);
+    }
+
     // const { data, error } = await supabase.auth.verifyOtp({
     //   phone: '+521234567890',
     //   token: '123456',
     //   type: 'sms'
     // });
-
-    // Proceed with verification and navigation
-    console.log('Verifying OTP:', otp);
-    navigation.navigate('HomeScreen'); // Adjust this to your next screen
   };
 
   return (
@@ -56,9 +81,9 @@ const SignUpFinalScreen = (props: SignUpFinalScreenProps) => {
         onPress={() => navigation.goBack()}>
         <Ionicons name="arrow-back-circle" size={32} color="rgba(52,160,171,255)" />
       </TouchableOpacity>
-      <TextElement style={styles.appName}>
+      <TextElement bold style={styles.appName}>
         Evers
-        <TextElement style={styles.vozColor}>Voz</TextElement>
+        <TextElement bold color="primary" style={styles.vozColor}>Voz</TextElement>
       </TextElement>
       <View style={styles.logoContainer}>
         <Image
@@ -68,7 +93,7 @@ const SignUpFinalScreen = (props: SignUpFinalScreenProps) => {
             : require('../../assets/logo.png')}
           style={styles.logo}
         />
-        <TextElement bold style={styles.title}>{phoneNumber}</TextElement>
+        <TextElement bold style={styles.title}>{email}</TextElement>
       </View>
 
       <InputElement

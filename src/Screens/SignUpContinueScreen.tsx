@@ -1,34 +1,35 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { NavigationProp, ParamListBase, useRoute } from '@react-navigation/native';
-import { createClient } from '@supabase/supabase-js';
+import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { NavigationProp, ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
+import { isEmpty, isEqual, isNull } from 'lodash';
 import { Ionicons } from '@expo/vector-icons';
-import PhoneInput from 'react-native-phone-input';
+// import PhoneInput from 'react-native-phone-input';
+import { supabase } from '../Utils/supabase';
+import { useDarkMode } from '../Contexts/DarkModeContext';
 import InputElement from '../Components/InputElement';
 import ButtonElement from '../Components/ButtonElement';
-import { isEmpty, isEqual, replace } from 'lodash';
 import ViewElement from '../Components/ViewElement';
-import { useDarkMode } from '../Contexts/DarkModeContext';
 import TextElement from '../Components/TextElement';
 
 interface SignUpContinueScreenProps {
   navigation: NavigationProp<ParamListBase>;
 }
 
+interface RouteParams {
+  email: string;
+}
+
 const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
   const { navigation } = props;
   const { isDarkMode } = useDarkMode();
-  const route = useRoute();
+
+  const route = useRoute<RouteProp<{ params: RouteParams }>>();
   const { email } = route.params;
 
-  const supabase = createClient(
-    process.env.EXPO_PUBLIC_SUPABASE_URL as string,
-    process.env.EXPO_PUBLIC_SUPABASE_KEY as string
-  );
-
   const [formDataError, setFormDataError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    phoneNumber: '',
+    // phoneNumber: '',
     password: '',
     confirmPassword: ''
   });
@@ -71,36 +72,47 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
       return;
     }
 
-    if (!formData.phoneNumber || !/^\+?[1-9]\d{0,14}([ -]?\d{1,4}){1,3}$/.test(formData.phoneNumber)) {
-      setFormDataError('Invalid phone number format');
-      return;
-    }
+    // if (!formData.phoneNumber || !/^\+?[1-9]\d{0,14}([ -]?\d{1,4}){1,3}$/.test(formData.phoneNumber)) {
+    //   setFormDataError('Invalid phone number format');
+    //   return;
+    // }
 
-    const { data, error } = await supabase.auth.signUp({
-      phone: `+${replace(formData.phoneNumber, /\D/g, '')}`,
-      email,
-      password: formData.password,
-      options: {
-        channel: 'sms'
-      }
-    })
+    // const { data, error } = await supabase.auth.signUp({
+    //   phone: `+${replace(formData.phoneNumber, /\D/g, '')}`,
+    //   email,
+    //   password: formData.password,
+    //   options: {
+    //     channel: 'sms'
+    //   }
+    // })
 
-    navigation.navigate('SignUpFinal', {
+    setFormDataError('');
+    setIsLoading(true);
+    const { error } = await supabase.auth.signUp({
       email,
-      phoneNumber: formData.phoneNumber,
       password: formData.password,
     });
+    setIsLoading(false);
+    if (!isNull(error)) {
+      setFormDataError(error.message);
+    } else {
+      setFormDataError('Email is taken');
+      navigation.navigate('SignUpFinal', {
+        email,
+        password: formData.password,
+      });
+    }
   };
 
-  const phoneStyles = isDarkMode
-  ? {
-    backgroundColor: '#1F1F1F',
-    borderColor: '#444',
-    }
-  : {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#DDD',
-  }
+  // const phoneStyles = isDarkMode
+  // ? {
+  //   backgroundColor: '#1F1F1F',
+  //   borderColor: '#444',
+  //   }
+  // : {
+  //   backgroundColor: '#FFFFFF',
+  //   borderColor: '#DDD',
+  // }
 
   return (
     <ViewElement style={[styles.container, {backgroundColor: isDarkMode ? '#1F1F1F' : '#fff'}]}>
@@ -124,13 +136,13 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
         <TextElement bold style={styles.title}>{email}</TextElement>
       </View>
 
-      <PhoneInput
+      {/* <PhoneInput
         style={[styles.phoneInput, phoneStyles]}
         textStyle={{ color: isDarkMode ? '#FFFFFF' : '#333' }}
         initialCountry="us"
         onChangePhoneNumber={(text: string) => formDataHandler('phoneNumber', text)}
         autoFormat={true}
-      />
+      /> */}
       <InputElement
         placeholder="Password"
         secureTextEntry
@@ -144,9 +156,9 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
         onChangeText={(text: string) => formDataHandler('confirmPassword', text)}
       />
 
-      <ButtonElement title="Send OTP" onPress={handleSignUpContinue} />
+      <ButtonElement title="Send OTP" loading={isLoading} disabled={isLoading} onPress={handleSignUpContinue} />
       {!isEmpty(formDataError)
-        ? <TextElement color="danger" style={styles.errorText}>{formDataError}</TextElement>
+        ? <TextElement color="danger" fontSize="small" style={styles.errorText}>{formDataError}</TextElement>
         : null}
 
       <TextElement style={styles.footerText}>
