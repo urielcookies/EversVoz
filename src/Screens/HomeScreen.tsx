@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { Audio } from 'expo-av';
 import axios from 'axios';
-import { isEmpty, map } from 'lodash';
+import { isEmpty, isNull, map } from 'lodash';
 import { useDarkMode } from '../Contexts/DarkModeContext';
 import ScrollViewElement from '../Components/ScrollViewElement';
 import ButtonElement from '../Components/ButtonElement';
@@ -16,11 +16,13 @@ const TRANSCRIBE_API = process.env.EXPO_PUBLIC_TRANSCRIBE_API;
 interface Response {
   english_phrase: string,
   phonetic_explanation: string,
+  user_input: string,
 }
 
 const HomeScreen = () => {
   const { isDarkMode } = useDarkMode();
   const [inputValue, setInputValue] = useState('');
+  const [originalPhrase, setOriginalPhrase] = useState('');
   const [currentSound, setCurrentSound] = useState<Blob | null>(null);
   const [pronounciationLoading, setPronounciationLoading] = useState(false);
   const [audioFileLoading, setAudioFileLoading] = useState(false);
@@ -28,6 +30,7 @@ const HomeScreen = () => {
   const [response, setResponse] = useState<Response>({
     english_phrase: '',
     phonetic_explanation: '',
+    user_input: '',
   });
 
   const handleSubmit = async () => {
@@ -49,10 +52,11 @@ const HomeScreen = () => {
       const results = await axios.post<Response>(`${EversVozAPIURL}/transcribe`, {text: inputValue}, {
         headers: {
           'Content-Type': 'application/json',
-          'transcribe-api-key': TRANSCRIBE_API
+          'transcribe-api-key': TRANSCRIBE_API || ''
         }
       });
       setResponse(results.data);
+      setOriginalPhrase(inputValue);
       return results;
     } catch (error: any) {
       setInputValue('');
@@ -76,7 +80,7 @@ const HomeScreen = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'transcribe-api-key': TRANSCRIBE_API
+          'transcribe-api-key': TRANSCRIBE_API as string
         },
         body: JSON.stringify({
           text: phrase,
@@ -176,7 +180,20 @@ const HomeScreen = () => {
       </CardElement>
 
       {!isEmpty(response.english_phrase) && (
-        <CardElement>
+      <CardElement>
+        {!isNull(response.user_input) && (
+          <View style={[styles.phraseContainer, {borderBottomColor: '#eee', borderBottomWidth: 1, paddingBottom: 16,}]}>
+            <TextElement
+              style={[styles.label, {color: isDarkMode ? '#999999' : '#666'}]}>
+              Frase o riginal:
+            </TextElement>
+            <TextElement
+              style={[styles.phraseText, {color: isDarkMode ? '#FFFFFF' : '#333'}]}>
+              {originalPhrase}
+            </TextElement>
+          </View>
+        )}
+
           <View style={styles.phraseContainer}>
             <TextElement
               style={[styles.label, {color: isDarkMode ? '#999999' : '#666'}]}>
