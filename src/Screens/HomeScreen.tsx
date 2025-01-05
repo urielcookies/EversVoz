@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Audio } from 'expo-av';
 import axios from 'axios';
-import { isEmpty, isNull, map } from 'lodash';
+import { isEmpty, isEqual, isNull, map } from 'lodash';
 import { useDarkMode } from '../Contexts/DarkModeContext';
 import ScrollViewElement from '../Components/ScrollViewElement';
 import ButtonElement from '../Components/ButtonElement';
 import CardElement from '../Components/CardElement';
 import TextElement from '../Components/TextElement';
 import InputElement from '../Components/InputElement';
+import { supabase } from '../Utils/supabase';
+import { useUserSession } from '../Contexts/UserSessionContext';
 
 const EversVozAPIURL = process.env.EXPO_PUBLIC_EVERSVOZ_URL;
 const TRANSCRIBE_API = process.env.EXPO_PUBLIC_TRANSCRIBE_API;
@@ -19,10 +21,14 @@ interface Response {
   user_input: string,
 }
 
+const MAX_RESPONSE = 5 // should be 200
+
 const HomeScreen = () => {
   const { isDarkMode } = useDarkMode();
+  const { user } = useUserSession();
   const [inputValue, setInputValue] = useState('');
-  const [originalPhrase, setOriginalPhrase] = useState('');
+  const [monthlyRequestCount, setMonthlyRequestCount] = useState<number>(0);
+  const [totalRequestCount, setTotalRequestCount] = useState<number>(0);
   const [currentSound, setCurrentSound] = useState<Blob | null>(null);
   const [pronounciationLoading, setPronounciationLoading] = useState(false);
   const [audioFileLoading, setAudioFileLoading] = useState(false);
@@ -32,6 +38,71 @@ const HomeScreen = () => {
     phonetic_explanation: '',
     user_input: '',
   });
+
+  useEffect(() => {
+    fetchUsageData();
+  }, [])
+
+  // Add real-time subscription to PhoneticUsage
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`public:PhoneticUsage:user_id=eq.${user.id}`)
+      .on(
+        'postgres_changes', 
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'PhoneticUsage',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload: { new: { monthly_request_count: number, total_request_count: number } }) => {
+          // console.log('Real-time update received:', payload);
+          if (payload.new) {
+            setMonthlyRequestCount(payload.new.monthly_request_count);
+            setTotalRequestCount(payload.new.total_request_count);
+          }
+        }).subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
+  const fetchUsageData = async () => {
+    if (!user?.id) {
+      console.error('User ID is missing.');
+      return;
+    }
+  
+    const { data, error } = await supabase
+      .from('PhoneticUsage')
+      .select('monthly_request_count, total_request_count')
+      .eq('user_id', user.id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching usage data:', error.message);
+    } else {
+      setMonthlyRequestCount(data.monthly_request_count);
+      setTotalRequestCount(data.total_request_count);
+    }
+  };
+
+  const incrementRequestCount = async () => {
+    if (isNull(user)) return;
+    const { error } = await supabase
+    .from('PhoneticUsage')
+    .update({ 
+      monthly_request_count: monthlyRequestCount + 1,
+      total_request_count: totalRequestCount + 1,
+    })
+    .eq('user_id', user.id)
+
+    if (error) {
+      console.error('Error fetching usage data:', error.message);
+    } 
+  };
 
   const handleSubmit = async () => {
     if (isEmpty(inputValue)) {
@@ -55,8 +126,11 @@ const HomeScreen = () => {
           'transcribe-api-key': TRANSCRIBE_API || ''
         }
       });
-      setResponse(results.data);
-      setOriginalPhrase(inputValue);
+
+      if (isEqual(results.status, 200)) {
+        setResponse(results.data);
+        incrementRequestCount();
+      }
       return results;
     } catch (error: any) {
       setInputValue('');
@@ -177,6 +251,9 @@ const HomeScreen = () => {
               icon='play-circle-o' />
           )}
         </View>
+        <View style={{ alignItems: 'flex-end' }}>
+          <TextElement>Usage {monthlyRequestCount}/{MAX_RESPONSE}</TextElement>
+        </View>
       </CardElement>
 
       {!isEmpty(response.english_phrase) && (
@@ -189,7 +266,7 @@ const HomeScreen = () => {
             </TextElement>
             <TextElement
               style={[styles.phraseText, {color: isDarkMode ? '#FFFFFF' : '#333'}]}>
-              {originalPhrase}
+              {response.user_input}
             </TextElement>
           </View>
         )}

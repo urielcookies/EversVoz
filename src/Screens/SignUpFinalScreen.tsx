@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { NavigationProp, ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
-import { isEmpty } from 'lodash';
+import { isEmpty, isNull } from 'lodash';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../Utils/supabase';
 import { useUserSession } from '../Contexts/UserSessionContext';
@@ -21,7 +21,7 @@ interface RouteParams {
 
 const SignUpFinalScreen = (props: SignUpFinalScreenProps) => {
   const { navigation } = props;
-  const { setSession } = useUserSession();
+  const { setUser, setSession } = useUserSession();
   const { isDarkMode } = useDarkMode();
   const route = useRoute<RouteProp<{ params: RouteParams }>>();
   const { email } = route.params;
@@ -64,7 +64,22 @@ const SignUpFinalScreen = (props: SignUpFinalScreenProps) => {
       setOtpError(error.message);
       return false;
     } else {
-      setSession(data.session);
+      if (!isNull(data.user)) {
+        const { error: insertError } = await supabase
+        .from('PhoneticUsage')
+        .insert([
+          {
+            user_id: data.user.id,
+          }
+        ]);
+    
+        if (insertError) {
+          console.error('Error inserting PhoneticUsage row:', insertError.message);
+        } else {
+          setSession(data.session);
+          setUser(data.user);
+        }
+      }
     }
 
     // const { data, error } = await supabase.auth.verifyOtp({

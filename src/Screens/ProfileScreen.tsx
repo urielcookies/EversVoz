@@ -1,15 +1,45 @@
 import React from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
+import { supabaseAdmin } from '../Utils/supabase';
 import ButtonElement from '../Components/ButtonElement';
 import SwitchElement from '../Components/SwitchElement';
 import { useDarkMode } from '../Contexts/DarkModeContext';
 import CardElement from '../Components/CardElement';
 import TextElement from '../Components/TextElement';
 import { useUserSession } from '../Contexts/UserSessionContext';
+import { isNull } from 'lodash';
 
 const ProfileScreen = () => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
-  const { logout } = useUserSession();
+  const { user, logout } = useUserSession();
+
+  const deleteUser = async () => {
+    try {
+      // Delete the user from the authentication system
+      if (isNull(user)) return;
+      console.log(user.id)
+      const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id);
+      if (error) {
+        console.error('Error deleting user:', error.message);
+        return;
+      }
+
+      const { error: deleteError } = await supabaseAdmin
+        .from('PhoneticUsage')
+        .delete()
+        .eq('user_id', user.id);
+      if (deleteError) {
+        console.error('Error deleting user data:', deleteError.message);
+        return;
+      }
+
+      // Log the user out
+      logout();
+      console.log("Account deleted");
+    } catch (error) {
+      console.error('Error deleting account:', error);
+    }
+  };
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -17,7 +47,7 @@ const ProfileScreen = () => {
       "¿Estás seguro de que deseas eliminar tu cuenta?",
       [
         { text: "Cancelar", style: "cancel" },
-        { text: "Eliminar", style: 'destructive', onPress: () => console.log("Account deleted") }
+        { text: "Eliminar", style: 'destructive', onPress: deleteUser }
       ],
       { cancelable: false }
     );
