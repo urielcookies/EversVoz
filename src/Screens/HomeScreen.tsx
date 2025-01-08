@@ -213,7 +213,7 @@ const HomeScreen = () => {
       );
     });
   };
-  console.log(response.phonetic_explanation)
+
   return (
     <ScrollViewElement>
       <CardElement>
