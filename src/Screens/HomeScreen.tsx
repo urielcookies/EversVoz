@@ -213,7 +213,7 @@ const HomeScreen = () => {
       );
     });
   };
-
+  console.log(response.phonetic_explanation)
   return (
     <ScrollViewElement>
       <CardElement>
@@ -262,7 +262,7 @@ const HomeScreen = () => {
           <View style={[styles.phraseContainer, {borderBottomColor: '#eee', borderBottomWidth: 1, paddingBottom: 16,}]}>
             <TextElement
               style={[styles.label, {color: isDarkMode ? '#999999' : '#666'}]}>
-              Frase o riginal:
+              Frase original:
             </TextElement>
             <TextElement
               style={[styles.phraseText, {color: isDarkMode ? '#FFFFFF' : '#333'}]}>

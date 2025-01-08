@@ -10,6 +10,7 @@ import InputElement from '../Components/InputElement';
 import ButtonElement from '../Components/ButtonElement';
 import ViewElement from '../Components/ViewElement';
 import TextElement from '../Components/TextElement';
+import { useUserSession } from '../Contexts/UserSessionContext';
 
 interface SignUpContinueScreenProps {
   navigation: NavigationProp<ParamListBase>;
@@ -21,6 +22,7 @@ interface RouteParams {
 
 const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
   const { navigation } = props;
+  const { createUserAccount } = useUserSession();
   const { isDarkMode } = useDarkMode();
 
   const route = useRoute<RouteProp<{ params: RouteParams }>>();
@@ -88,10 +90,7 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
 
     setFormDataError('');
     setIsLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email,
-      password: formData.password,
-    });
+    const { error } = await createUserAccount(email, formData.password);
     setIsLoading(false);
     if (!isNull(error)) {
       setFormDataError(error.message);

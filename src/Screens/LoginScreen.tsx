@@ -39,13 +39,15 @@ const LoginScreen = (props: LoginScreenProps) => {
     const { error } = await login(formData.email, formData.password)
     setIsLoading(false);
     if (error) {
-      console.log(error.message)
       if (isEqual(error.message, 'Invalid login credentials')) {
         setErrorMessage('Credenciales de inicio de sesión inválidas');
       }
       else if (isEqual(error.message, 'Email not confirmed')) {
         setErrorMessage('Correo electrónico no confirmado');
         setShowResendOTP(formData.email);
+      }
+      else if (isEqual(error.message, 'missing email or phone')) {
+        setErrorMessage('credenciales faltantes');
       }
       else {
         setErrorMessage(error.message);

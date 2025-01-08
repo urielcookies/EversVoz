@@ -11,35 +11,7 @@ import { isNull } from 'lodash';
 
 const ProfileScreen = () => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
-  const { user, logout } = useUserSession();
-
-  const deleteUser = async () => {
-    try {
-      // Delete the user from the authentication system
-      if (isNull(user)) return;
-      console.log(user.id)
-      const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id);
-      if (error) {
-        console.error('Error deleting user:', error.message);
-        return;
-      }
-
-      const { error: deleteError } = await supabaseAdmin
-        .from('PhoneticUsage')
-        .delete()
-        .eq('user_id', user.id);
-      if (deleteError) {
-        console.error('Error deleting user data:', deleteError.message);
-        return;
-      }
-
-      // Log the user out
-      logout();
-      console.log("Account deleted");
-    } catch (error) {
-      console.error('Error deleting account:', error);
-    }
-  };
+  const { logout, deleteUserAccount } = useUserSession();
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -47,7 +19,7 @@ const ProfileScreen = () => {
       "¿Estás seguro de que deseas eliminar tu cuenta?",
       [
         { text: "Cancelar", style: "cancel" },
-        { text: "Eliminar", style: 'destructive', onPress: deleteUser }
+        { text: "Eliminar", style: 'destructive', onPress: deleteUserAccount }
       ],
       { cancelable: false }
     );

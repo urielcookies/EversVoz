@@ -21,7 +21,7 @@ interface RouteParams {
 
 const SignUpFinalScreen = (props: SignUpFinalScreenProps) => {
   const { navigation } = props;
-  const { setUser, setSession } = useUserSession();
+  const { verifyOTPUser } = useUserSession();
   const { isDarkMode } = useDarkMode();
   const route = useRoute<RouteProp<{ params: RouteParams }>>();
   const { email } = route.params;
@@ -38,49 +38,16 @@ const SignUpFinalScreen = (props: SignUpFinalScreenProps) => {
 
   const handleVerifyOtp = async () => {
     if (isEmpty(otp)) {
-      setOtpError('OTP cannot be empty');
+      setOtpError('el código no puede estar vacío');
       return;
     }
 
     if (otp.length !== 6 || !/^[0-9]{6}$/.test(otp)) {
-      setOtpError('Invalid OTP format. OTP must be 6 digits.');
+      setOtpError('Formato de código no válido. El código debe tener 6 dígitos.');
       return;
     }
 
-    const { data, error } = await supabase.auth.verifyOtp({
-      email,
-      token: otp,
-      type: 'email',
-    });
-  
-    // if (data.user) {
-    //   await supabaseAdmin.auth.admin.updateUserById(
-    //     data.user.id,
-    //     { phone: `+${phoneNumber.replace(/\D/g, '')}` }
-    //   )
-    // }
-
-    if (error) {
-      setOtpError(error.message);
-      return false;
-    } else {
-      if (!isNull(data.user)) {
-        const { error: insertError } = await supabase
-        .from('PhoneticUsage')
-        .insert([
-          {
-            user_id: data.user.id,
-          }
-        ]);
-    
-        if (insertError) {
-          console.error('Error inserting PhoneticUsage row:', insertError.message);
-        } else {
-          setSession(data.session);
-          setUser(data.user);
-        }
-      }
-    }
+      verifyOTPUser(email, otp);
 
     // const { data, error } = await supabase.auth.verifyOtp({
     //   phone: '+521234567890',

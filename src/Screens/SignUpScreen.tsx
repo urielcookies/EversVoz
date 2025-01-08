@@ -8,6 +8,7 @@ import ButtonElement from '../Components/ButtonElement';
 import TextElement from '../Components/TextElement';
 import ViewElement from '../Components/ViewElement';
 import { useDarkMode } from '../Contexts/DarkModeContext';
+import { useUserSession } from '../Contexts/UserSessionContext';
 
 interface SignUpScreenProps {
   navigation: NavigationProp<ParamListBase>;
@@ -15,7 +16,7 @@ interface SignUpScreenProps {
 
 const SignUpScreen = (props: SignUpScreenProps) => {
   const { navigation } = props;
-
+  const { emailCheck } = useUserSession();
   const { isDarkMode } = useDarkMode();
   const [isLoading, setIsLoading] = useState(false);
   const [formDataError, setFormDataError] = useState('');
@@ -38,11 +39,7 @@ const SignUpScreen = (props: SignUpScreenProps) => {
     }
 
     setIsLoading(true);
-    const { data, error } = await supabase
-      .from('auth.users')
-      .select('id')
-      .eq('email', formData.email)
-      .single();
+      const { data } = await emailCheck(formData.email);
       setIsLoading(false);
       if (isNull(data)) {
         setFormDataError('');
