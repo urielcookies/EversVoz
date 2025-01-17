@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { Audio } from 'expo-av';
 import axios from 'axios';
 import { isEmpty, isEqual, isNull, map } from 'lodash';
@@ -21,18 +21,30 @@ interface Response {
   user_input: string,
 }
 
-const MAX_RESPONSE = 5 // should be 200
+interface PhoneticUsage {
+  monthlyRequestCount: number,
+  totalRequestCount: number,
+  tierType: keyof typeof MAX_RESPONSES,
+}
+
+const MAX_RESPONSES = {
+  FREE_TIER: 10,
+  BASIC_TIER: 200,
+}
 
 const HomeScreen = () => {
   const { isDarkMode } = useDarkMode();
   const { user } = useUserSession();
   const [inputValue, setInputValue] = useState('');
-  const [monthlyRequestCount, setMonthlyRequestCount] = useState<number>(0);
-  const [totalRequestCount, setTotalRequestCount] = useState<number>(0);
   const [currentSound, setCurrentSound] = useState<Blob | null>(null);
   const [pronounciationLoading, setPronounciationLoading] = useState(false);
   const [audioFileLoading, setAudioFileLoading] = useState(false);
   const [error, setError] = useState('');
+  const [phoneticUsage, setPhoneticUsage] = useState<PhoneticUsage>({
+    monthlyRequestCount: 0,
+    totalRequestCount: 0,
+    tierType: 'FREE_TIER',
+  });
   const [response, setResponse] = useState<Response>({
     english_phrase: '',
     phonetic_explanation: '',
@@ -56,11 +68,16 @@ const HomeScreen = () => {
           table: 'PhoneticUsage',
           filter: `user_id=eq.${user.id}`
         },
-        (payload: { new: { monthly_request_count: number, total_request_count: number } }) => {
-          // console.log('Real-time update received:', payload);
+        (payload: { new: { monthly_request_count: number, total_request_count: number, tier_type: 'FREE_TIER' | 'BASIC_TIER' } }) => {
+          console.log('Real-time update received:', payload);
           if (payload.new) {
-            setMonthlyRequestCount(payload.new.monthly_request_count);
-            setTotalRequestCount(payload.new.total_request_count);
+            setPhoneticUsage({
+              monthlyRequestCount: payload.new.monthly_request_count,
+              totalRequestCount: payload.new.total_request_count,
+              tierType: payload.new.tier_type,
+            });
+          } else {
+            console.log('???', payload)
           }
         }).subscribe();
 
@@ -77,15 +94,18 @@ const HomeScreen = () => {
   
     const { data, error } = await supabase
       .from('PhoneticUsage')
-      .select('monthly_request_count, total_request_count')
+      .select('monthly_request_count, total_request_count, tier_type')
       .eq('user_id', user.id)
       .single();
 
     if (error) {
       console.error('Error fetching usage data:', error.message);
     } else {
-      setMonthlyRequestCount(data.monthly_request_count);
-      setTotalRequestCount(data.total_request_count);
+      setPhoneticUsage({
+        monthlyRequestCount: data.monthly_request_count,
+        totalRequestCount: data.total_request_count,
+        tierType: data.tier_type,
+      });
     }
   };
 
@@ -94,14 +114,30 @@ const HomeScreen = () => {
     const { error } = await supabase
     .from('PhoneticUsage')
     .update({ 
-      monthly_request_count: monthlyRequestCount + 1,
-      total_request_count: totalRequestCount + 1,
+      monthly_request_count: phoneticUsage.monthlyRequestCount + 1,
+      total_request_count: phoneticUsage.totalRequestCount + 1,
     })
     .eq('user_id', user.id)
 
     if (error) {
       console.error('Error fetching usage data:', error.message);
     } 
+  };
+
+  const payup = async () => {
+    if (isNull(user)) return;
+    setTimeout(async () => {
+      const { error } = await supabase
+      .from('PhoneticUsage')
+      .update({ 
+        tier_type: 'BASIC_TIER',
+      })
+      .eq('user_id', user.id)
+  
+      if (error) {
+        console.error('Error updating data:', error.message);
+      } 
+    }, 2000);
   };
 
   const handleSubmit = async () => {
@@ -118,6 +154,20 @@ const HomeScreen = () => {
   };
 
   const getTranscription = async () => {
+
+    if (isEqual(phoneticUsage.monthlyRequestCount, MAX_RESPONSES[phoneticUsage.tierType])) {
+      Alert.alert(
+        "SAMPLE PAYWAL",
+        "SAMPLE PAYWALL",
+        [
+          { text: "Cancelar", style: "cancel" },
+          { text: "PAGAR", style: 'default', onPress: payup }
+        ],
+        { cancelable: false }
+      );
+      return;
+    };
+
     try {
       setPronounciationLoading(true);
       const results = await axios.post<Response>(`${EversVozAPIURL}/transcribe`, {text: inputValue}, {
@@ -214,6 +264,8 @@ const HomeScreen = () => {
     });
   };
 
+  console.log(inputValue)
+  console.log(phoneticUsage)
   return (
     <ScrollViewElement>
       <CardElement>
@@ -252,7 +304,7 @@ const HomeScreen = () => {
           )}
         </View>
         <View style={{ alignItems: 'flex-end' }}>
-          <TextElement>Usage {monthlyRequestCount}/{MAX_RESPONSE}</TextElement>
+          <TextElement>Usage {phoneticUsage.monthlyRequestCount}/{MAX_RESPONSES[phoneticUsage.tierType]}</TextElement>
         </View>
       </CardElement>
 
