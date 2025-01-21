@@ -11,9 +11,10 @@ interface UserSessionContextType {
   login: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   logout: () => Promise<{ error: AuthError | null }>;
   loading: boolean;
-  emailCheck: (email: string) =>Promise<{ data: { id: string} | null }>
+  emailCheck: (email: string) => Promise<{ data: { id: string} | null }>
+  archivedUserCheck: (email: string) => Promise<{ error: PostgrestError | null; data?: ArchivedUser }>
   createUserAccount: (email: string, password: string) => Promise<{ error: AuthError | null }>;
-  verifyOTPUser: (email: string, token: string) => Promise<{ error: AuthError | PostgrestError | null }>;
+  verifyOTPUser: (email: string, token: string, archivedUser: ArchivedUser) => Promise<{ error: AuthError | PostgrestError | null }>;
   deleteUserAccount: () => Promise<{ error: AuthError | PostgrestError | null } | null>;
   handleSendOtp: (email: string) => Promise<{ error: AuthError } | { error: null }>
 }
@@ -93,7 +94,7 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
     return { error: null };
   };
 
-  const verifyOTPUser = async (email: string, token: string) => {
+  const verifyOTPUser = async (email: string, token: string, archivedUser: ArchivedUser) => {
     const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'email' });
     if (error) {
       console.error('Error verifying OTP:', error.message);
@@ -101,10 +102,35 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
     }
 
     if (data.user) {
-      const { error: insertError } = await supabase.from('PhoneticUsage').insert([{ user_id: data.user.id }]);
-      if (insertError) {
-        console.error(`Error inserting into PhoneticUsage: ${insertError.message}`);
-        return { error: insertError };
+      if (archivedUser) {
+        const { error: insertError } = await supabase.from('PhoneticUsage').insert([{
+          user_id: data.user.id,
+          tier_type: archivedUser.tier_type,
+          monthly_request_count: archivedUser.monthly_request_count,
+          total_request_count: archivedUser.total_request_count,
+          updated_at: new Date().toISOString(),
+          created_at: new Date().toISOString(),
+        }]);
+        if (insertError) {
+          console.error(`Error inserting into PhoneticUsage: ${insertError.message}`);
+          return { error: insertError };
+        }
+
+        const { error: deleteError } = await supabaseAdmin
+          .from('ArchivedUsers')
+          .delete()
+          .eq('email', archivedUser.email);
+
+        if (deleteError) {
+          console.error('Error deleting user data:', deleteError.message);
+          return { error: deleteError };
+        }
+      } else {
+        const { error: insertError } = await supabase.from('PhoneticUsage').insert([{ user_id: data.user.id }]);
+        if (insertError) {
+          console.error(`Error inserting into PhoneticUsage: ${insertError.message}`);
+          return { error: insertError };
+        }
       }
       setSession(data.session);
       setUser(data.user);
@@ -116,6 +142,7 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
   const deleteUserAccount = async () => {
     if (!isNull(user)) {
       try {
+        await archiveUser();
         const { error } = await supabaseAdmin.auth.admin.deleteUser(user.id);
         if (error) {
           console.error('Error deleting user:', error.message);
@@ -156,6 +183,50 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
     return { error: null };
   };
 
+  const archiveUser = async () => {
+    if (isNull(user)) return
+    const { data, error } = await supabase
+      .from('PhoneticUsage')
+      .select('tier_type, monthly_request_count, total_request_count')
+      .eq('user_id', user.id)
+      .single();
+
+    const { email, phone } = user;
+
+    if (email && data) {
+      const archivedUserValues: ArchivedUser = {
+        email,
+        phone: phone || null,
+        tier_type: data.tier_type,
+        monthly_request_count: data.monthly_request_count,
+        total_request_count: data.total_request_count,
+        created_at: new Date().toISOString(),
+      };
+      const { error: insertError } = await supabase.from('ArchivedUsers').insert([archivedUserValues]);
+      if (insertError) {
+        console.error(`Error inserting into ArchivedUsers: ${insertError.message}`);
+        return { error: insertError };
+      }
+    }
+
+    if (error) {
+      console.error('Logout error:', error.message);
+      return { error };
+    }
+
+    return { error: null };
+  };
+
+  const archivedUserCheck = async (email: string) => {
+    const { data, error } = await supabase
+      .from('ArchivedUsers')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    return { data: data as ArchivedUser, error };
+  };
+
   const values = {
     user,
     session,
@@ -167,6 +238,7 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
     verifyOTPUser,
     deleteUserAccount,
     handleSendOtp,
+    archivedUserCheck,
   };
 
   return (
@@ -183,3 +255,13 @@ export const useUserSession = () => {
   }
   return context;
 };
+
+export interface ArchivedUser {
+  created_at: string;
+  email: string;
+  // id: number;
+  monthly_request_count: number;
+  phone: string | null;
+  tier_type: string;
+  total_request_count: number;
+}

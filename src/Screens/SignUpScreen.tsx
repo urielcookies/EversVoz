@@ -16,7 +16,7 @@ interface SignUpScreenProps {
 
 const SignUpScreen = (props: SignUpScreenProps) => {
   const { navigation } = props;
-  const { emailCheck } = useUserSession();
+  const { emailCheck, archivedUserCheck } = useUserSession();
   const { isDarkMode } = useDarkMode();
   const [isLoading, setIsLoading] = useState(false);
   const [formDataError, setFormDataError] = useState('');
@@ -39,14 +39,17 @@ const SignUpScreen = (props: SignUpScreenProps) => {
     }
 
     setIsLoading(true);
-      const { data } = await emailCheck(formData.email);
-      setIsLoading(false);
-      if (isNull(data)) {
-        setFormDataError('');
-        navigation.navigate('SignUpContinue', { email: formData.email });
-      } else {
-        setFormDataError('El correo electrónico ya está en uso');
-      }
+
+    const { data: archivedUser } = await archivedUserCheck(formData.email)
+    const { data } = await emailCheck(formData.email);
+    setIsLoading(false);
+
+    if (isNull(data)) {
+      setFormDataError('');
+      navigation.navigate('SignUpContinue', { email: formData.email, archivedUser });
+    } else {
+      setFormDataError('El correo electrónico ya está en uso');
+    }
   };
 
   return (

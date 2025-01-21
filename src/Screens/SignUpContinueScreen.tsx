@@ -10,13 +10,14 @@ import InputElement from '../Components/InputElement';
 import ButtonElement from '../Components/ButtonElement';
 import ViewElement from '../Components/ViewElement';
 import TextElement from '../Components/TextElement';
-import { useUserSession } from '../Contexts/UserSessionContext';
+import { ArchivedUser, useUserSession } from '../Contexts/UserSessionContext';
 
 interface SignUpContinueScreenProps {
   navigation: NavigationProp<ParamListBase>;
 }
 
 interface RouteParams {
+  archivedUser: ArchivedUser;
   email: string;
 }
 
@@ -26,7 +27,7 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
   const { isDarkMode } = useDarkMode();
 
   const route = useRoute<RouteProp<{ params: RouteParams }>>();
-  const { email } = route.params;
+  const { email, archivedUser } = route.params;
 
   const [formDataError, setFormDataError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -96,6 +97,7 @@ const SignUpContinueScreen = (props: SignUpContinueScreenProps) => {
       setFormDataError(error.message);
     } else {
       navigation.navigate('SignUpFinal', {
+        archivedUser,
         email,
         password: formData.password,
       });

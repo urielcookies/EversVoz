@@ -116,6 +116,8 @@ const HomeScreen = () => {
     .update({ 
       monthly_request_count: phoneticUsage.monthlyRequestCount + 1,
       total_request_count: phoneticUsage.totalRequestCount + 1,
+      updated_at: new Date().toISOString(),
+
     })
     .eq('user_id', user.id)
 
@@ -131,6 +133,7 @@ const HomeScreen = () => {
       .from('PhoneticUsage')
       .update({ 
         tier_type: 'BASIC_TIER',
+        updated_at: new Date().toISOString(),
       })
       .eq('user_id', user.id)
   

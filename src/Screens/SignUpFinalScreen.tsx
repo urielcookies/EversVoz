@@ -4,7 +4,7 @@ import { NavigationProp, ParamListBase, RouteProp, useRoute } from '@react-navig
 import { isEmpty, isNull } from 'lodash';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../Utils/supabase';
-import { useUserSession } from '../Contexts/UserSessionContext';
+import { ArchivedUser, useUserSession } from '../Contexts/UserSessionContext';
 import { useDarkMode } from '../Contexts/DarkModeContext';
 import ViewElement from '../Components/ViewElement';
 import TextElement from '../Components/TextElement';
@@ -16,6 +16,7 @@ interface SignUpFinalScreenProps {
 }
 
 interface RouteParams {
+  archivedUser: ArchivedUser;
   email: string;
 }
 
@@ -24,7 +25,7 @@ const SignUpFinalScreen = (props: SignUpFinalScreenProps) => {
   const { verifyOTPUser } = useUserSession();
   const { isDarkMode } = useDarkMode();
   const route = useRoute<RouteProp<{ params: RouteParams }>>();
-  const { email } = route.params;
+  const { email, archivedUser } = route.params;
 
   const [otp, setOtp] = useState('');
   const [otpError, setOtpError] = useState('');
@@ -47,7 +48,7 @@ const SignUpFinalScreen = (props: SignUpFinalScreenProps) => {
       return;
     }
 
-      verifyOTPUser(email, otp);
+      verifyOTPUser(email, otp, archivedUser);
 
     // const { data, error } = await supabase.auth.verifyOtp({
     //   phone: '+521234567890',
