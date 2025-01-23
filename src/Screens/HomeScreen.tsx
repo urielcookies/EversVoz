@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { Audio } from 'expo-av';
 import axios from 'axios';
+import { adapty } from 'react-native-adapty';
+import { createPaywallView } from '@adapty/react-native-ui';
 import { isEmpty, isEqual, isNull, map } from 'lodash';
 import { useDarkMode } from '../Contexts/DarkModeContext';
 import ScrollViewElement from '../Components/ScrollViewElement';
@@ -128,19 +130,34 @@ const HomeScreen = () => {
 
   const payup = async () => {
     if (isNull(user)) return;
-    setTimeout(async () => {
-      const { error } = await supabase
-      .from('PhoneticUsage')
-      .update({ 
-        tier_type: 'BASIC_TIER',
-        updated_at: new Date().toISOString(),
-      })
-      .eq('user_id', user.id)
+    const paywall = await adapty.getPaywall('basic_tier_placement');
+    const view = await createPaywallView(paywall);
+    await view.registerEventHandlers({
+      onCloseButtonPress() {
+        return true;
+      },
+      onPurchaseStarted() {},
+      onPurchaseCancelled() {},
+      onPurchaseFailed() {},
+      onRestoreFailed() {},
+      onProductSelected() {},
+      onRenderingFailed() {},
+      onLoadingProductsFailed() {},
+    });
+    view.present()
+    // setTimeout(async () => {
+    //   const { error } = await supabase
+    //   .from('PhoneticUsage')
+    //   .update({ 
+    //     tier_type: 'BASIC_TIER',
+    //     updated_at: new Date().toISOString(),
+    //   })
+    //   .eq('user_id', user.id)
   
-      if (error) {
-        console.error('Error updating data:', error.message);
-      } 
-    }, 2000);
+    //   if (error) {
+    //     console.error('Error updating data:', error.message);
+    //   } 
+    // }, 2000);
   };
 
   const handleSubmit = async () => {
@@ -159,16 +176,18 @@ const HomeScreen = () => {
   const getTranscription = async () => {
 
     if (isEqual(phoneticUsage.monthlyRequestCount, MAX_RESPONSES[phoneticUsage.tierType])) {
-      Alert.alert(
-        "SAMPLE PAYWAL",
-        "SAMPLE PAYWALL",
-        [
-          { text: "Cancelar", style: "cancel" },
-          { text: "PAGAR", style: 'default', onPress: payup }
-        ],
-        { cancelable: false }
-      );
+      payup()
       return;
+    //   Alert.alert(
+    //     "SAMPLE PAYWAL",
+    //     "SAMPLE PAYWALL",
+    //     [
+    //       { text: "Cancelar", style: "cancel" },
+    //       { text: "PAGAR", style: 'default', onPress: payup }
+    //     ],
+    //     { cancelable: false }
+    //   );
+    //   return;
     };
 
     try {
