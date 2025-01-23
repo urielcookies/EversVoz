@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.urielcookies.EversVoz"
+      "bundleIdentifier": "com.everscode.eversvoz"
     },
     "android": {
       "adaptiveIcon": {
