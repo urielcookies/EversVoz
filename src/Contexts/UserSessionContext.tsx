@@ -3,6 +3,7 @@ import { isNull } from 'lodash';
 import { AuthError, PostgrestError, Session, User } from '@supabase/supabase-js';
 import { supabase, supabaseAdmin } from '../Utils/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { adapty } from 'react-native-adapty';
 
 // Define the interface for the context type
 interface UserSessionContextType {
@@ -42,6 +43,9 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
           const { data: { user }, error } = await supabase.auth.getUser();
           if (error) throw error;
           setUser(user);
+          if (user?.email) {
+            adapty.identify(user.email);
+          }
         }
         setSession(session);
       } finally {
@@ -73,6 +77,7 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
 
     setSession(null);
     setUser(null);
+    await adapty.logout();
     return { error: null };
   };
 
