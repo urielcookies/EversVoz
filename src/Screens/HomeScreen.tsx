@@ -14,7 +14,7 @@ import InputElement from '../Components/InputElement';
 import { supabase } from '../Utils/supabase';
 import { useUserSession } from '../Contexts/UserSessionContext';
 
-const EversVozAPIURL = process.env.EXPO_PUBLIC_EVERSVOZ_URL;
+const EversVozAPIURL = __DEV__ ? process.env.EXPO_PUBLIC_EVERSVOZ_URL_DEV : process.env.EXPO_PUBLIC_EVERSVOZ_URL_PROD;
 const TRANSCRIBE_API = process.env.EXPO_PUBLIC_TRANSCRIBE_API;
 
 interface Response {
