@@ -1,4 +1,4 @@
-{
+export default {
   "expo": {
     "name": "EversVoz",
     "slug": "EversVoz",
@@ -12,9 +12,18 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "extra": {
+      "eas": {
+        "projectId": "f15f605b-b950-45e9-9dae-c04cf4a9a774"
+      }
+    },
     "ios": {
+      "buildNumber": '4',
       "supportsTablet": true,
-      "bundleIdentifier": "com.everscode.eversvoz"
+      "bundleIdentifier": "com.everscode.eversvoz",
+      "entitlements": {
+        "aps-environment": "production"
+      }
     },
     "android": {
       "adaptiveIcon": {

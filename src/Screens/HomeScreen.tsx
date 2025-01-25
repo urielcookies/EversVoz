@@ -38,6 +38,7 @@ const HomeScreen = () => {
   const { isDarkMode } = useDarkMode();
   const { user } = useUserSession();
   const [inputValue, setInputValue] = useState('');
+  const [userTier, setUserTier] = useState<number>(MAX_RESPONSES.FREE_TIER);
   const [currentSound, setCurrentSound] = useState<Blob | null>(null);
   const [pronounciationLoading, setPronounciationLoading] = useState(false);
   const [audioFileLoading, setAudioFileLoading] = useState(false);
@@ -54,6 +55,7 @@ const HomeScreen = () => {
   });
 
   useEffect(() => {
+    fetchUserTier();
     fetchUsageData();
   }, [])
 
@@ -87,6 +89,19 @@ const HomeScreen = () => {
       supabase.removeChannel(channel);
     };
   }, [user]);
+
+  const fetchUserTier = async () => {
+    try {
+      const profile = await adapty.getProfile();
+      setUserTier(
+        profile.accessLevels?.basic_tier
+        ? MAX_RESPONSES.BASIC_TIER
+        : MAX_RESPONSES.FREE_TIER
+      );
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const fetchUsageData = async () => {
     if (!user?.id) {
@@ -174,21 +189,25 @@ const HomeScreen = () => {
   };
 
   const getTranscription = async () => {
+    const profile = await adapty.getProfile();
+    const isBasicTierActive = profile.accessLevels?.basic_tier.isActive;
+    const maxRequestReached = isEqual(
+      phoneticUsage.monthlyRequestCount,
+      isBasicTierActive ? MAX_RESPONSES.BASIC_TIER : MAX_RESPONSES.FREE_TIER
+    );
 
-    if (isEqual(phoneticUsage.monthlyRequestCount, MAX_RESPONSES[phoneticUsage.tierType])) {
-      payup()
+    if (isBasicTierActive && maxRequestReached) {
+      Alert.alert(
+        "Límite Alcanzado",
+        `Esperar hasta ${'EXPIRED_DATA'}`,
+      );
       return;
-    //   Alert.alert(
-    //     "SAMPLE PAYWAL",
-    //     "SAMPLE PAYWALL",
-    //     [
-    //       { text: "Cancelar", style: "cancel" },
-    //       { text: "PAGAR", style: 'default', onPress: payup }
-    //     ],
-    //     { cancelable: false }
-    //   );
-    //   return;
-    };
+    }
+    
+    if (!isBasicTierActive && maxRequestReached) {
+      payup();
+      return;
+    }
 
     try {
       setPronounciationLoading(true);
@@ -326,7 +345,7 @@ const HomeScreen = () => {
           )}
         </View>
         <View style={{ alignItems: 'flex-end' }}>
-          <TextElement>Usage {phoneticUsage.monthlyRequestCount}/{MAX_RESPONSES[phoneticUsage.tierType]}</TextElement>
+          <TextElement>Usage {phoneticUsage.monthlyRequestCount}/{userTier}</TextElement>
         </View>
       </CardElement>
 
