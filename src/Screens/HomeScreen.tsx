@@ -5,6 +5,8 @@ import axios from 'axios';
 import { adapty } from 'react-native-adapty';
 import { createPaywallView } from '@adapty/react-native-ui';
 import { isEmpty, isEqual, isNull, map } from 'lodash';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale'; 
 import { useDarkMode } from '../Contexts/DarkModeContext';
 import ScrollViewElement from '../Components/ScrollViewElement';
 import ButtonElement from '../Components/ButtonElement';
@@ -31,8 +33,11 @@ interface PhoneticUsage {
 
 const MAX_RESPONSES = {
   FREE_TIER: 10,
-  BASIC_TIER: 200,
+  BASIC_TIER: 6,
 }
+
+// building
+// bye
 
 const HomeScreen = () => {
   const { isDarkMode } = useDarkMode();
@@ -199,7 +204,11 @@ const HomeScreen = () => {
     if (isBasicTierActive && maxRequestReached) {
       Alert.alert(
         "Límite Alcanzado",
-        `Esperar hasta ${'EXPIRED_DATA'}`,
+        `Esperar hasta ${
+          profile.accessLevels?.basic_tier.expiresAt
+          ? format(profile.accessLevels.basic_tier.expiresAt, "d 'de' MMMM 'de' yyyy 'a las' hh:mm:ss a", { locale: es })
+          : 'una fecha desconocida'
+        } para uso para reiniciar`,
       );
       return;
     }

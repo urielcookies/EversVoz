@@ -88,16 +88,16 @@ const LoginScreen = (props: LoginScreenProps) => {
         placeholder="Correo Electrónico"
         keyboardType="email-address"
         onChangeText={(text) => formDataHandler('email', text)} />
-  
+
       <InputElement
         placeholder="Contraseña"
         secureTextEntry
         value={formData.password}
         onChangeText={(text) => formDataHandler('password', text)} />
-  
+
       <ButtonElement title="Iniciar Sesión" loading={isLoading} disabled={isLoading} onPress={handleLogin} />
       {!isEmpty(errorMessage) ? <TextElement fontSize="small" color="danger" style={styles.errorText}>{errorMessage}</TextElement> : null}
-  
+
       <TextElement style={styles.footerText}>
         ¿No tienes una cuenta?{' '}
         <TextElement
