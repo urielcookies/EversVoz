@@ -33,7 +33,7 @@ interface PhoneticUsage {
 
 const MAX_RESPONSES = {
   FREE_TIER: 10,
-  BASIC_TIER: 6,
+  BASIC_TIER: 200,
 }
 
 // building
