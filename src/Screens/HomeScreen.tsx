@@ -15,6 +15,7 @@ import TextElement from '../Components/TextElement';
 import InputElement from '../Components/InputElement';
 import { supabase } from '../Utils/supabase';
 import { useUserSession } from '../Contexts/UserSessionContext';
+import { basicTierUser } from '../Utils/adaptyFunctions';
 
 const EversVozAPIURL = __DEV__ ? process.env.EXPO_PUBLIC_EVERSVOZ_URL_DEV : process.env.EXPO_PUBLIC_EVERSVOZ_URL_PROD;
 const TRANSCRIBE_API = process.env.EXPO_PUBLIC_TRANSCRIBE_API;
@@ -36,8 +37,7 @@ const MAX_RESPONSES = {
   BASIC_TIER: 200,
 }
 
-// building
-// bye
+
 
 const HomeScreen = () => {
   const { isDarkMode } = useDarkMode();
@@ -182,9 +182,32 @@ const HomeScreen = () => {
 
   const handleSubmit = async () => {
     if (isEmpty(inputValue)) {
-      setError('Input field can not be empty');
+      setError('El campo de entrada no puede estar vacío');
       return;
     }
+    const basicUser = await basicTierUser();
+    const maxRequestReached = isEqual( 
+      phoneticUsage.monthlyRequestCount,
+      basicUser?.isActive ? MAX_RESPONSES.BASIC_TIER : MAX_RESPONSES.FREE_TIER
+    );
+
+    if (maxRequestReached && basicUser?.isActive) {
+      Alert.alert(
+        "Límite Alcanzado",
+        `Esperar hasta ${
+          basicUser.expiresAt
+          ? format(basicUser.expiresAt, "d 'de' MMMM 'de' yyyy 'a las' hh:mm:ss a", { locale: es })
+          : 'una fecha desconocida'
+        } para uso para reiniciar`,
+      );
+      return;
+    }
+
+    if (maxRequestReached && !basicUser?.isActive) {
+      payup();
+      return;
+    }
+
     setError('');
     const results = await getTranscription();
     const phrase = results?.data.english_phrase;
@@ -194,30 +217,6 @@ const HomeScreen = () => {
   };
 
   const getTranscription = async () => {
-    const profile = await adapty.getProfile();
-    const isBasicTierActive = profile.accessLevels?.basic_tier.isActive;
-    const maxRequestReached = isEqual(
-      phoneticUsage.monthlyRequestCount,
-      isBasicTierActive ? MAX_RESPONSES.BASIC_TIER : MAX_RESPONSES.FREE_TIER
-    );
-
-    if (isBasicTierActive && maxRequestReached) {
-      Alert.alert(
-        "Límite Alcanzado",
-        `Esperar hasta ${
-          profile.accessLevels?.basic_tier.expiresAt
-          ? format(profile.accessLevels.basic_tier.expiresAt, "d 'de' MMMM 'de' yyyy 'a las' hh:mm:ss a", { locale: es })
-          : 'una fecha desconocida'
-        } para uso para reiniciar`,
-      );
-      return;
-    }
-    
-    if (!isBasicTierActive && maxRequestReached) {
-      payup();
-      return;
-    }
-
     try {
       setPronounciationLoading(true);
       const results = await axios.post<Response>(`${EversVozAPIURL}/transcribe`, {text: inputValue}, {
@@ -316,6 +315,7 @@ const HomeScreen = () => {
 
   console.log(inputValue)
   console.log(phoneticUsage)
+
   return (
     <ScrollViewElement>
       <CardElement>
