@@ -43,7 +43,7 @@ const HomeScreen = () => {
   const { isDarkMode } = useDarkMode();
   const { user } = useUserSession();
   const [inputValue, setInputValue] = useState('');
-  const [userTier, setUserTier] = useState<number>(MAX_RESPONSES.FREE_TIER);
+  const [userTierResponses, setUserTierResponses] = useState<number>(MAX_RESPONSES.FREE_TIER);
   const [currentSound, setCurrentSound] = useState<Blob | null>(null);
   const [pronounciationLoading, setPronounciationLoading] = useState(false);
   const [audioFileLoading, setAudioFileLoading] = useState(false);
@@ -60,7 +60,7 @@ const HomeScreen = () => {
   });
 
   useEffect(() => {
-    fetchUserTier();
+    fetchuserTierResponses();
     fetchUsageData();
   }, [])
 
@@ -95,11 +95,11 @@ const HomeScreen = () => {
     };
   }, [user]);
 
-  const fetchUserTier = async () => {
+  const fetchuserTierResponses = async () => {
     try {
-      const profile = await adapty.getProfile();
-      setUserTier(
-        profile.accessLevels?.basic_tier
+      const basicUser = await basicTierUser();
+      setUserTierResponses(
+        basicUser?.isActive
         ? MAX_RESPONSES.BASIC_TIER
         : MAX_RESPONSES.FREE_TIER
       );
@@ -354,7 +354,7 @@ const HomeScreen = () => {
           )}
         </View>
         <View style={{ alignItems: 'flex-end' }}>
-          <TextElement>Usage {phoneticUsage.monthlyRequestCount}/{userTier}</TextElement>
+          <TextElement>Usage {phoneticUsage.monthlyRequestCount}/{userTierResponses}</TextElement>
         </View>
       </CardElement>
 
