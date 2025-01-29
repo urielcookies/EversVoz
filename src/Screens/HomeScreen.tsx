@@ -5,8 +5,9 @@ import axios from 'axios';
 import { adapty } from 'react-native-adapty';
 import { createPaywallView } from '@adapty/react-native-ui';
 import { isEmpty, isEqual, isNull, map } from 'lodash';
-import { addMonths, format, isPast } from 'date-fns';
+import { format } from 'date-fns';
 import { es } from 'date-fns/locale'; 
+import { User } from '@supabase/supabase-js';
 import { useDarkMode } from '../Contexts/DarkModeContext';
 import ScrollViewElement from '../Components/ScrollViewElement';
 import ButtonElement from '../Components/ButtonElement';
@@ -15,8 +16,7 @@ import TextElement from '../Components/TextElement';
 import InputElement from '../Components/InputElement';
 import { supabase } from '../Utils/supabase';
 import { useUserSession } from '../Contexts/UserSessionContext';
-import { basicTierUser } from '../Utils/adaptyFunctions';
-import { PostgrestError } from '@supabase/supabase-js';
+import { basicTierUser, IsExpired, resetCredits } from '../Utils/adaptyFunctions';
 
 const EversVozAPIURL = __DEV__ ? process.env.EXPO_PUBLIC_EVERSVOZ_URL_DEV : process.env.EXPO_PUBLIC_EVERSVOZ_URL_PROD;
 const TRANSCRIBE_API = process.env.EXPO_PUBLIC_TRANSCRIBE_API;
@@ -38,7 +38,6 @@ const MAX_RESPONSES = {
   FREE_TIER: 10,
   BASIC_TIER: 200,
 }
-
 
 
 const HomeScreen = () => {
@@ -63,8 +62,12 @@ const HomeScreen = () => {
   });
 
   useEffect(() => {
-    fetchuserTierResponses();
-    fetchUsageData();
+    const initialFetch = async () => {
+      await resetCredits(user as User, true);
+      await fetchuserTierResponses();
+      fetchUsageData(user as User);
+    }
+    initialFetch();
   }, [])
 
   // Add real-time subscription to PhoneticUsage
@@ -114,12 +117,7 @@ const HomeScreen = () => {
     }
   };
 
-  const fetchUsageData = async () => {
-    if (!user?.id) {
-      console.error('User ID is missing.');
-      return;
-    }
-
+  const fetchUsageData = async (user: User) => {
     const { data, error } = await supabase
       .from('PhoneticUsage')
       .select('monthly_request_count, total_request_count, tier_type, reset_monthly_requests_date')
@@ -130,68 +128,24 @@ const HomeScreen = () => {
       console.error('Error fetching usage data:', error.message);
       return error;
     } else {
-      const dataz = {
+      setPhoneticUsage({
         monthlyRequestCount: data.monthly_request_count,
         totalRequestCount: data.total_request_count,
         tierType: data.tier_type,
         resetMonthlyRequestsDate: data.reset_monthly_requests_date,
-      }
-      setPhoneticUsage(dataz);
-      resetCredits(data.reset_monthly_requests_date);
-      return data;
+      });
     }
   };
 
-  const resetCredits = async(resetDate: Date) => {
-    if (isNull(user)) return null;
-    if (resetDate && isPast(new Date(resetDate))) {
-      let newResetDate = addMonths(new Date(), 1);
-      const basicUser = await basicTierUser();
-      if (basicUser?.isActive) {
-        newResetDate = basicUser.renewedAt ?? basicUser?.activatedAt
-      }
-      const { error } = await supabase
-        .from('PhoneticUsage')
-        .update({ 
-          monthly_request_count: 0,
-          reset_monthly_requests_date: newResetDate,
-          updated_at: new Date(),
-        })
-        .eq('user_id', user.id);
-      if (error) {
-        console.error('Error inserting data:', error.message);
-        return error
-      }
-      return true;
-    }
-    return null;
-  };
-
-  const incrementRequestCount = async () => {
+  const incrementRequestCount = async (isExpired: IsExpired) => {
     if (isNull(user)) return;
-
-    let newResetDate = addMonths(new Date(), 1);
-    // if (isNull(phoneticUsage.resetMonthlyRequestsDate)) {
-    //   setPhoneticUsage((prevState) => ({
-    //     ...prevState,
-    //     resetMonthlyRequestsDate: newResetDate
-    //   }));
-    // }
-
-    let reset: boolean | PostgrestError | null = false;
-    if (phoneticUsage.resetMonthlyRequestsDate) {
-      reset = await resetCredits(phoneticUsage.resetMonthlyRequestsDate)
-    }
-
-    const { error } = await supabase
+      const { error } = await supabase
       .from('PhoneticUsage')
       .update({ 
-        monthly_request_count: reset ? 1 : phoneticUsage.monthlyRequestCount + 1,
+        monthly_request_count: isNull(isExpired) ? phoneticUsage.monthlyRequestCount + 1 : 1,
         total_request_count: phoneticUsage.totalRequestCount + 1,
         updated_at: new Date(),
-        reset_monthly_requests_date: isNull(phoneticUsage.resetMonthlyRequestsDate)
-          ? newResetDate
-          : phoneticUsage.resetMonthlyRequestsDate
+        reset_monthly_requests_date: isNull(isExpired) ? phoneticUsage.resetMonthlyRequestsDate : isExpired,
       })
       .eq('user_id', user.id);
 
@@ -211,6 +165,13 @@ const HomeScreen = () => {
       onPurchaseStarted() {},
       onPurchaseCancelled() {},
       onPurchaseFailed() {},
+      onPurchaseCompleted() {
+        const updateProfile = async () => {
+          await resetCredits(user as User, true); // may need to manual update the reset date
+          await fetchuserTierResponses();
+        }
+        updateProfile()
+      },
       onRestoreFailed() {},
       onProductSelected() {},
       onRenderingFailed() {},
@@ -238,8 +199,10 @@ const HomeScreen = () => {
       return;
     }
     const basicUser = await basicTierUser();
+    const isExpired = await resetCredits(user as User);
+
     const maxRequestReached = isEqual( 
-      phoneticUsage.monthlyRequestCount,
+      isNull(isExpired) ? phoneticUsage.monthlyRequestCount : 0,
       basicUser?.isActive ? MAX_RESPONSES.BASIC_TIER : MAX_RESPONSES.FREE_TIER
     );
 
@@ -262,6 +225,9 @@ const HomeScreen = () => {
 
     setError('');
     const results = await getTranscription();
+    if (isEqual(results?.status, 200)) {
+      incrementRequestCount(isExpired);
+    }
     const phrase = results?.data.english_phrase;
     if (phrase) {
       getAudio(phrase);
@@ -280,7 +246,6 @@ const HomeScreen = () => {
 
       if (isEqual(results.status, 200)) {
         setResponse(results.data);
-        incrementRequestCount();
       }
       return results;
     } catch (error: any) {
@@ -365,8 +330,6 @@ const HomeScreen = () => {
     });
   };
 
-  console.log(inputValue)
-  console.log(phoneticUsage)
 
   return (
     <ScrollViewElement>
