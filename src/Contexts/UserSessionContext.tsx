@@ -193,7 +193,7 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
     if (isNull(user)) return
     const { data, error } = await supabase
       .from('PhoneticUsage')
-      .select('tier_type, monthly_request_count, total_request_count')
+      .select('tier_type, monthly_request_count, total_request_count, reset_monthly_requests_date')
       .eq('user_id', user.id)
       .single();
 
@@ -206,7 +206,8 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
         tier_type: data.tier_type,
         monthly_request_count: data.monthly_request_count,
         total_request_count: data.total_request_count,
-        created_at: new Date().toISOString(),
+        reset_monthly_requests_date: data.reset_monthly_requests_date,
+        created_at: new Date(),
       };
       const { error: insertError } = await supabase.from('ArchivedUsers').insert([archivedUserValues]);
       if (insertError) {
@@ -263,11 +264,12 @@ export const useUserSession = () => {
 };
 
 export interface ArchivedUser {
-  created_at: string;
-  email: string;
   // id: number;
+  created_at: Date;
+  email: string;
   monthly_request_count: number;
   phone: string | null;
+  reset_monthly_requests_date: Date | null;
   tier_type: string;
   total_request_count: number;
 }
