@@ -15,7 +15,7 @@ import { isEmpty } from 'lodash';
 
 const ProfileScreen = () => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
-  const { logout, deleteUserAccount } = useUserSession();
+  const { user, logout, deleteUserAccount } = useUserSession();
   const [ subscription, setSubscription] = useState({
     expirationDate: '',
     renews: 'No',
@@ -59,6 +59,12 @@ const ProfileScreen = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: isDarkMode ? '#121212' : '#f5f5f5' }]}>
+      <CardElement>
+        <View style={styles.subscription}>
+          <TextElement bold style={styles.text}>{user?.email}</TextElement>
+        </View>
+      </CardElement>
+
       <CardElement>
         <View style={styles.row}>
           <TextElement bold style={styles.text}>Modo Oscuro</TextElement>
