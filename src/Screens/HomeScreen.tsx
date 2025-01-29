@@ -30,7 +30,7 @@ interface PhoneticUsage {
   monthlyRequestCount: number,
   totalRequestCount: number,
   tierType: keyof typeof MAX_RESPONSES,
-  resetMonthlyRequestsDate: string | null;
+  resetMonthlyRequestsDate: Date | null;
 }
 
 const MAX_RESPONSES = {
@@ -146,7 +146,7 @@ const HomeScreen = () => {
         .update({ 
           monthly_request_count: 0,
           reset_monthly_requests_date: newResetDate,
-          updated_at: new Date().toISOString(),
+          updated_at: new Date(),
         })
         .eq('user_id', user.id);
       if (error) {
@@ -158,7 +158,7 @@ const HomeScreen = () => {
   const incrementRequestCount = async () => {
     if (isNull(user)) return;
 
-    let newResetDate = addMonths(new Date(), 1).toISOString()
+    let newResetDate = addMonths(new Date(), 1);
     if (isNull(phoneticUsage.resetMonthlyRequestsDate)) {
       setPhoneticUsage((prevState) => ({
         ...prevState,
