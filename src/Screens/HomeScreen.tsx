@@ -16,6 +16,7 @@ import InputElement from '../Components/InputElement';
 import { supabase } from '../Utils/supabase';
 import { useUserSession } from '../Contexts/UserSessionContext';
 import { basicTierUser } from '../Utils/adaptyFunctions';
+import { PostgrestError } from '@supabase/supabase-js';
 
 const EversVozAPIURL = __DEV__ ? process.env.EXPO_PUBLIC_EVERSVOZ_URL_DEV : process.env.EXPO_PUBLIC_EVERSVOZ_URL_PROD;
 const TRANSCRIBE_API = process.env.EXPO_PUBLIC_TRANSCRIBE_API;
@@ -69,29 +70,31 @@ const HomeScreen = () => {
   // Add real-time subscription to PhoneticUsage
   useEffect(() => {
     if (!user?.id) return;
+
+    // Create a real-time subscription to listen for updates
     const channel = supabase
-      .channel(`public:PhoneticUsage:user_id=eq.${user.id}`)
+      .channel(`phonetic_usage_${user.id}`) // Unique channel name per user
       .on(
-        'postgres_changes', 
+        'postgres_changes',
         {
           event: 'UPDATE',
           schema: 'public',
           table: 'PhoneticUsage',
-          filter: `user_id=eq.${user.id}`
+          filter: `user_id=eq.${user.id}`, // Ensure filter is properly formatted
         },
-        (payload: { new: { monthly_request_count: number, total_request_count: number, tier_type: 'FREE_TIER' | 'BASIC_TIER' } }) => {
-          console.log('Real-time update received:', payload);
+        (payload) => {
+          console.log("Real-time update received:", payload);
           if (payload.new) {
             setPhoneticUsage({
               monthlyRequestCount: payload.new.monthly_request_count,
               totalRequestCount: payload.new.total_request_count,
               tierType: payload.new.tier_type,
-              resetMonthlyRequestsDate: phoneticUsage.resetMonthlyRequestsDate,
+              resetMonthlyRequestsDate: payload.new.reset_monthly_requests_date, // Ensure correct property reference
             });
-          } else {
-            console.log('???', payload)
           }
-        }).subscribe();
+        }
+      )
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
@@ -140,7 +143,7 @@ const HomeScreen = () => {
   };
 
   const resetCredits = async(resetDate: Date) => {
-    if (isNull(user)) return;
+    if (isNull(user)) return null;
     if (resetDate && isPast(new Date(resetDate))) {
       let newResetDate = addMonths(new Date(), 1);
       const basicUser = await basicTierUser();
@@ -157,8 +160,11 @@ const HomeScreen = () => {
         .eq('user_id', user.id);
       if (error) {
         console.error('Error inserting data:', error.message);
+        return error
       }
+      return true;
     }
+    return null;
   };
 
   const incrementRequestCount = async () => {
@@ -172,10 +178,15 @@ const HomeScreen = () => {
     //   }));
     // }
 
+    let reset: boolean | PostgrestError | null = false;
+    if (phoneticUsage.resetMonthlyRequestsDate) {
+      reset = await resetCredits(phoneticUsage.resetMonthlyRequestsDate)
+    }
+
     const { error } = await supabase
       .from('PhoneticUsage')
       .update({ 
-        monthly_request_count: phoneticUsage.monthlyRequestCount + 1,
+        monthly_request_count: reset ? 1 : phoneticUsage.monthlyRequestCount + 1,
         total_request_count: phoneticUsage.totalRequestCount + 1,
         updated_at: new Date(),
         reset_monthly_requests_date: isNull(phoneticUsage.resetMonthlyRequestsDate)
@@ -247,10 +258,6 @@ const HomeScreen = () => {
     if (maxRequestReached && !basicUser?.isActive) {
       payup();
       return;
-    }
-
-    if (phoneticUsage.resetMonthlyRequestsDate) {
-      resetCredits(phoneticUsage.resetMonthlyRequestsDate);
     }
 
     setError('');
