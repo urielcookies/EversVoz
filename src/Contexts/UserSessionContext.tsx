@@ -116,6 +116,7 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
           updated_at: new Date().toISOString(),
           created_at: new Date().toISOString(),
         }]);
+
         if (insertError) {
           console.error(`Error inserting into PhoneticUsage: ${insertError.message}`);
           return { error: insertError };
