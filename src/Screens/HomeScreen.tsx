@@ -64,7 +64,6 @@ const HomeScreen = () => {
   useEffect(() => {
     fetchuserTierResponses();
     fetchUsageData();
-    resetCredits();
   }, [])
 
   // Add real-time subscription to PhoneticUsage
@@ -126,21 +125,28 @@ const HomeScreen = () => {
 
     if (error) {
       console.error('Error fetching usage data:', error.message);
+      return error;
     } else {
-      setPhoneticUsage({
+      const dataz = {
         monthlyRequestCount: data.monthly_request_count,
         totalRequestCount: data.total_request_count,
         tierType: data.tier_type,
         resetMonthlyRequestsDate: data.reset_monthly_requests_date,
-      });
+      }
+      setPhoneticUsage(dataz);
+      resetCredits(data.reset_monthly_requests_date);
+      return data;
     }
   };
 
-  const resetCredits = async() => {
+  const resetCredits = async(resetDate: Date) => {
     if (isNull(user)) return;
-    const resetDate = phoneticUsage.resetMonthlyRequestsDate;
     if (resetDate && isPast(new Date(resetDate))) {
-      const newResetDate = addMonths(new Date(resetDate), 1);
+      let newResetDate = addMonths(new Date(), 1);
+      const basicUser = await basicTierUser();
+      if (basicUser?.isActive) {
+        newResetDate = basicUser.renewedAt ?? basicUser?.activatedAt
+      }
       const { error } = await supabase
         .from('PhoneticUsage')
         .update({ 
@@ -159,12 +165,12 @@ const HomeScreen = () => {
     if (isNull(user)) return;
 
     let newResetDate = addMonths(new Date(), 1);
-    if (isNull(phoneticUsage.resetMonthlyRequestsDate)) {
-      setPhoneticUsage((prevState) => ({
-        ...prevState,
-        resetMonthlyRequestsDate: newResetDate
-      }));
-    }
+    // if (isNull(phoneticUsage.resetMonthlyRequestsDate)) {
+    //   setPhoneticUsage((prevState) => ({
+    //     ...prevState,
+    //     resetMonthlyRequestsDate: newResetDate
+    //   }));
+    // }
 
     const { error } = await supabase
       .from('PhoneticUsage')
@@ -243,7 +249,9 @@ const HomeScreen = () => {
       return;
     }
 
-    resetCredits();
+    if (phoneticUsage.resetMonthlyRequestsDate) {
+      resetCredits(phoneticUsage.resetMonthlyRequestsDate);
+    }
 
     setError('');
     const results = await getTranscription();
