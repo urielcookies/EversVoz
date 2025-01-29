@@ -5,7 +5,7 @@ import axios from 'axios';
 import { adapty } from 'react-native-adapty';
 import { createPaywallView } from '@adapty/react-native-ui';
 import { isEmpty, isEqual, isNull, map } from 'lodash';
-import { format } from 'date-fns';
+import { addMonths, format, isPast } from 'date-fns';
 import { es } from 'date-fns/locale'; 
 import { useDarkMode } from '../Contexts/DarkModeContext';
 import ScrollViewElement from '../Components/ScrollViewElement';
@@ -30,6 +30,7 @@ interface PhoneticUsage {
   monthlyRequestCount: number,
   totalRequestCount: number,
   tierType: keyof typeof MAX_RESPONSES,
+  resetMonthlyRequestsDate: string | null;
 }
 
 const MAX_RESPONSES = {
@@ -52,6 +53,7 @@ const HomeScreen = () => {
     monthlyRequestCount: 0,
     totalRequestCount: 0,
     tierType: 'FREE_TIER',
+    resetMonthlyRequestsDate: null,
   });
   const [response, setResponse] = useState<Response>({
     english_phrase: '',
@@ -62,6 +64,7 @@ const HomeScreen = () => {
   useEffect(() => {
     fetchuserTierResponses();
     fetchUsageData();
+    resetCredits();
   }, [])
 
   // Add real-time subscription to PhoneticUsage
@@ -84,6 +87,7 @@ const HomeScreen = () => {
               monthlyRequestCount: payload.new.monthly_request_count,
               totalRequestCount: payload.new.total_request_count,
               tierType: payload.new.tier_type,
+              resetMonthlyRequestsDate: phoneticUsage.resetMonthlyRequestsDate,
             });
           } else {
             console.log('???', payload)
@@ -113,10 +117,10 @@ const HomeScreen = () => {
       console.error('User ID is missing.');
       return;
     }
-  
+
     const { data, error } = await supabase
       .from('PhoneticUsage')
-      .select('monthly_request_count, total_request_count, tier_type')
+      .select('monthly_request_count, total_request_count, tier_type, reset_monthly_requests_date')
       .eq('user_id', user.id)
       .single();
 
@@ -127,21 +131,52 @@ const HomeScreen = () => {
         monthlyRequestCount: data.monthly_request_count,
         totalRequestCount: data.total_request_count,
         tierType: data.tier_type,
+        resetMonthlyRequestsDate: data.reset_monthly_requests_date,
       });
+    }
+  };
+
+  const resetCredits = async() => {
+    if (isNull(user)) return;
+    const resetDate = phoneticUsage.resetMonthlyRequestsDate;
+    if (resetDate && isPast(new Date(resetDate))) {
+      const newResetDate = addMonths(new Date(resetDate), 1).toISOString();
+      const { error } = await supabase
+        .from('PhoneticUsage')
+        .update({ 
+          monthly_request_count: 0,
+          reset_monthly_requests_date: newResetDate,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id);
+      if (error) {
+        console.error('Error inserting data:', error.message);
+      }
     }
   };
 
   const incrementRequestCount = async () => {
     if (isNull(user)) return;
-    const { error } = await supabase
-    .from('PhoneticUsage')
-    .update({ 
-      monthly_request_count: phoneticUsage.monthlyRequestCount + 1,
-      total_request_count: phoneticUsage.totalRequestCount + 1,
-      updated_at: new Date().toISOString(),
 
-    })
-    .eq('user_id', user.id)
+    let newResetDate = addMonths(new Date(), 1).toISOString()
+    if (isNull(phoneticUsage.resetMonthlyRequestsDate)) {
+      setPhoneticUsage((prevState) => ({
+        ...prevState,
+        resetMonthlyRequestsDate: newResetDate
+      }));
+    }
+
+    const { error } = await supabase
+      .from('PhoneticUsage')
+      .update({ 
+        monthly_request_count: phoneticUsage.monthlyRequestCount + 1,
+        total_request_count: phoneticUsage.totalRequestCount + 1,
+        updated_at: new Date().toISOString(),
+        reset_monthly_requests_date: isNull(phoneticUsage.resetMonthlyRequestsDate)
+          ? newResetDate
+          : phoneticUsage.resetMonthlyRequestsDate
+      })
+      .eq('user_id', user.id);
 
     if (error) {
       console.error('Error fetching usage data:', error.message);
@@ -207,6 +242,8 @@ const HomeScreen = () => {
       payup();
       return;
     }
+
+    resetCredits();
 
     setError('');
     const results = await getTranscription();
