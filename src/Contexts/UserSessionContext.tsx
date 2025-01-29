@@ -113,8 +113,9 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
           tier_type: archivedUser.tier_type,
           monthly_request_count: archivedUser.monthly_request_count,
           total_request_count: archivedUser.total_request_count,
-          updated_at: new Date().toISOString(),
-          created_at: new Date().toISOString(),
+          reset_monthly_requests_date: archivedUser.reset_monthly_requests_date,
+          updated_at: new Date(),
+          created_at: new Date(),
         }]);
 
         if (insertError) {
