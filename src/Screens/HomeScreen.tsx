@@ -140,7 +140,7 @@ const HomeScreen = () => {
     if (isNull(user)) return;
     const resetDate = phoneticUsage.resetMonthlyRequestsDate;
     if (resetDate && isPast(new Date(resetDate))) {
-      const newResetDate = addMonths(new Date(resetDate), 1).toISOString();
+      const newResetDate = addMonths(new Date(resetDate), 1);
       const { error } = await supabase
         .from('PhoneticUsage')
         .update({ 
@@ -171,7 +171,7 @@ const HomeScreen = () => {
       .update({ 
         monthly_request_count: phoneticUsage.monthlyRequestCount + 1,
         total_request_count: phoneticUsage.totalRequestCount + 1,
-        updated_at: new Date().toISOString(),
+        updated_at: new Date(),
         reset_monthly_requests_date: isNull(phoneticUsage.resetMonthlyRequestsDate)
           ? newResetDate
           : phoneticUsage.resetMonthlyRequestsDate
