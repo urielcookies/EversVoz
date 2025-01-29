@@ -178,19 +178,6 @@ const HomeScreen = () => {
       onLoadingProductsFailed() {},
     });
     view.present()
-    // setTimeout(async () => {
-    //   const { error } = await supabase
-    //   .from('PhoneticUsage')
-    //   .update({ 
-    //     tier_type: 'BASIC_TIER',
-    //     updated_at: new Date().toISOString(),
-    //   })
-    //   .eq('user_id', user.id)
-  
-    //   if (error) {
-    //     console.error('Error updating data:', error.message);
-    //   } 
-    // }, 2000);
   };
 
   const handleSubmit = async () => {
