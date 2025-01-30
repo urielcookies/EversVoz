@@ -1,6 +1,6 @@
 import { PostgrestError, User } from "@supabase/supabase-js";
-import { isPast, addMonths } from "date-fns";
-import { isNull, isUndefined } from "lodash";
+import { isPast, addMonths, getDate, setDate, isBefore } from "date-fns";
+import { isUndefined } from "lodash";
 import { adapty } from "react-native-adapty";
 import { supabase } from "./supabase";
 
@@ -64,6 +64,23 @@ const fetchResetDate = async (user: User): Promise<Date | null> => {
     : (await fetchPhoneticUsage(user)).data?.reset_monthly_requests_date ?? null;
 };
 
+// Function to calculate the correct next renewal date
+const getNextRenewalDate = (lastRenewal: Date | null): Date => {
+  if (!lastRenewal) return addMonths(new Date(), 1); // Default to next month if no last renewal
+
+  let nextRenewal = new Date(lastRenewal);
+  const renewalDay = getDate(nextRenewal); // Keep the same day
+  const today = new Date();
+
+  // Keep adding months until we get a renewal date in the future
+  while (isBefore(nextRenewal, today)) {
+    nextRenewal = addMonths(nextRenewal, 1);
+    nextRenewal = setDate(nextRenewal, renewalDay); // Ensure the correct renewal day
+  }
+
+  return nextRenewal;
+};
+
 interface ResetCredits {
   onMount: boolean;
   DBUpdate: boolean;
@@ -72,10 +89,10 @@ interface ResetCredits {
 
 const resetCredits = async ({ onMount, DBUpdate, user }: ResetCredits): Promise<Date | null> => {
   const resetDate = await fetchResetDate(user);
-  const newResetDate = addMonths(new Date(), 1);
+  const newResetDate = getNextRenewalDate(resetDate);
 
-  // if onmount and resetdate is expired
-  if (onMount && (resetDate && isPast(resetDate))) {
+  // If onMount and resetDate is expired
+  if (onMount && resetDate && isPast(resetDate)) {
     if (DBUpdate) {
       await updatePhoneticUsage(user, {
         reset_monthly_requests_date: newResetDate,
@@ -85,8 +102,8 @@ const resetCredits = async ({ onMount, DBUpdate, user }: ResetCredits): Promise<
     return null;
   }
 
-  // if resetdate is expired or null
-  if (!onMount && !resetDate || (resetDate && isPast(resetDate))) {
+  // If resetDate is expired or null
+  if (!onMount && (!resetDate || isPast(resetDate))) {
     if (DBUpdate) {
       await updatePhoneticUsage(user, {
         reset_monthly_requests_date: newResetDate,

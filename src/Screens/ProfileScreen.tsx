@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
-import { isEmpty } from 'lodash';
 import { User } from '@supabase/supabase-js';
 import ButtonElement from '../Components/ButtonElement';
 import SwitchElement from '../Components/SwitchElement';
@@ -38,11 +37,6 @@ const ProfileScreen = () => {
       } else {
         setResetDate(resetDate);
       }
-
-      // setSubscription((prevStae) => ({
-      //   ...prevStae,
-      //   expirationDate: resetDate,
-      // }));
     }
     
     initialFetch();
