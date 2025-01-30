@@ -65,6 +65,9 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
 
     setSession(data.session);
     setUser(data.user);
+    if (data.user.email) {
+      adapty.identify(data.user.email);
+    }
     return { error: null };
   };
 
