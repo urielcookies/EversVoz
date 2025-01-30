@@ -1,48 +1,51 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
-import { adapty } from 'react-native-adapty';
-import { format, parseISO } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { supabaseAdmin } from '../Utils/supabase';
+import { isEmpty } from 'lodash';
+import { User } from '@supabase/supabase-js';
 import ButtonElement from '../Components/ButtonElement';
 import SwitchElement from '../Components/SwitchElement';
 import { useDarkMode } from '../Contexts/DarkModeContext';
 import CardElement from '../Components/CardElement';
 import TextElement from '../Components/TextElement';
 import { useUserSession } from '../Contexts/UserSessionContext';
-import { isEmpty } from 'lodash';
+import { basicTierUser, fetchResetDate } from '../Utils/adaptyFunctions';
+import { es } from 'date-fns/locale';
+import { format } from 'date-fns';
 
+
+interface Subscription {
+  active: boolean;
+  expirationDate: Date | null;
+  renews: 'Si' | 'No';
+};
 
 const ProfileScreen = () => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const { user, logout, deleteUserAccount } = useUserSession();
-  const [ subscription, setSubscription] = useState({
-    expirationDate: '',
-    renews: 'No',
-  });
+  const [resetDate, setResetDate] = useState<Date | null>(null);
+  const [ subscription, setSubscription] = useState<Subscription | null>(null);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const profile = await adapty.getProfile();
-        console.log('basic_tier-->>', profile.accessLevels?.basic_tier)
-
-        const expirationDate = profile.accessLevels?.basic_tier?.expiresAt
-          ? format(profile.accessLevels?.basic_tier.expiresAt, "d 'de' MMMM 'de' yyyy 'a las' hh:mm:ss a", { locale: es })
-          : profile.accessLevels?.basic_tier?.unsubscribedAt
-            ? format(profile.accessLevels?.basic_tier.unsubscribedAt, "d 'de' MMMM 'de' yyyy 'a las' hh:mm:ss a", { locale: es })
-            : ''
-
+    const initialFetch = async () => {
+      const resetDate =  await fetchResetDate(user as User);
+      const basicUser = await basicTierUser();
+      if (basicUser?.isActive) {
         setSubscription({
-          expirationDate,
-          renews: profile.accessLevels?.basic_tier.willRenew ? 'Si' : 'No'
-        });
-      } catch (error) {
-        console.error('Error fetching profile:', error);
+          active: basicUser.isActive,
+          expirationDate: basicUser.expiresAt || null,
+          renews: basicUser.willRenew ? 'Si' : 'No',
+        })
+      } else {
+        setResetDate(resetDate);
       }
-    };
 
-    fetchProfile();
+      // setSubscription((prevStae) => ({
+      //   ...prevStae,
+      //   expirationDate: resetDate,
+      // }));
+    }
+    
+    initialFetch();
   }, []);
 
   const handleDeleteAccount = () => {
@@ -65,6 +68,40 @@ const ProfileScreen = () => {
         </View>
       </CardElement>
 
+      {resetDate && (
+        <CardElement>
+          <View style={styles.subscription}>
+            <TextElement bold style={styles.text}>Créditos Restablecidos</TextElement>
+            <View style={styles.spacer} />
+            <TextElement style={styles.text}>
+              {resetDate ? format(resetDate, "d 'de' MMMM 'de' yyyy", { locale: es }) : 'No disponible'}
+            </TextElement>
+          </View>
+        </CardElement>
+      )}
+
+      {subscription && (
+        <>
+          <CardElement>
+            <View style={styles.subscription}>
+              <TextElement bold style={styles.text}>Fecha de renovación de la suscripción</TextElement>
+              <View style={styles.spacer} />
+              <TextElement style={styles.text}>
+                {subscription.expirationDate ? format(subscription.expirationDate, "d 'de' MMMM 'de' yyyy", { locale: es }) : 'No disponible'}
+              </TextElement>
+            </View>
+          </CardElement>
+
+          <CardElement>
+            <View style={styles.subscription}>
+              <TextElement bold style={styles.text}>Renueva Suscripción</TextElement>
+              <View style={styles.spacer} />
+              <TextElement style={styles.text}>{subscription.renews}</TextElement>
+            </View>
+          </CardElement>
+        </>
+      )}
+
       <CardElement>
         <View style={styles.row}>
           <TextElement bold style={styles.text}>Modo Oscuro</TextElement>
@@ -86,26 +123,6 @@ const ProfileScreen = () => {
           width="100%"
           icon="trash-o" />
       </CardElement>
-
-    {!isEmpty(subscription) && (
-      <>
-        <CardElement>
-          <View style={styles.subscription}>
-            <TextElement bold style={styles.text}>Fin De Suscripción</TextElement>
-            <View style={styles.spacer} />
-            <TextElement style={styles.text}>{subscription.expirationDate}</TextElement>
-          </View>
-        </CardElement>
-
-        <CardElement>
-          <View style={styles.subscription}>
-            <TextElement bold style={styles.text}>Renueva Suscripción</TextElement>
-            <View style={styles.spacer} />
-            <TextElement style={styles.text}>{String(subscription.renews)}</TextElement>
-          </View>
-        </CardElement>
-      </>
-    )}
     </View>
   );
 };

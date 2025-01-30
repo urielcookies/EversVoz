@@ -16,7 +16,7 @@ import TextElement from '../Components/TextElement';
 import InputElement from '../Components/InputElement';
 import { supabase } from '../Utils/supabase';
 import { useUserSession } from '../Contexts/UserSessionContext';
-import { basicTierUser, IsExpired, resetCredits } from '../Utils/adaptyFunctions';
+import { basicTierUser, fetchResetDate, resetCredits, updatePhoneticUsage } from '../Utils/adaptyFunctions';
 
 const EversVozAPIURL = __DEV__ ? process.env.EXPO_PUBLIC_EVERSVOZ_URL_DEV : process.env.EXPO_PUBLIC_EVERSVOZ_URL_PROD;
 const TRANSCRIBE_API = process.env.EXPO_PUBLIC_TRANSCRIBE_API;
@@ -63,7 +63,11 @@ const HomeScreen = () => {
 
   useEffect(() => {
     const initialFetch = async () => {
-      await resetCredits(user as User, true);
+      await resetCredits({
+        onMount: true,
+        DBUpdate: true,
+        user: user as User
+      });
       await fetchuserTierResponses();
       fetchUsageData(user as User);
     }
@@ -126,7 +130,7 @@ const HomeScreen = () => {
 
     if (error) {
       console.error('Error fetching usage data:', error.message);
-      return error;
+      return error
     } else {
       setPhoneticUsage({
         monthlyRequestCount: data.monthly_request_count,
@@ -165,9 +169,13 @@ const HomeScreen = () => {
       onPurchaseStarted() {},
       onPurchaseCancelled() {},
       onPurchaseFailed() {},
-      onPurchaseCompleted() {
+      onPurchaseCompleted(prop) {
         const updateProfile = async () => {
-          await resetCredits(user as User, true); // may need to manual update the reset date
+          const basicUser = await basicTierUser();
+          await updatePhoneticUsage(user, {
+            reset_monthly_requests_date: basicUser?.expiresAt,
+            monthly_request_count: 0,
+          });
           await fetchuserTierResponses();
         }
         updateProfile()
@@ -186,8 +194,12 @@ const HomeScreen = () => {
       return;
     }
     const basicUser = await basicTierUser();
-    const isExpired = await resetCredits(user as User);
-
+    const isExpired = await resetCredits({
+      onMount: false,
+      DBUpdate: false,
+      user: user as User
+    });
+    console.log('isExpired-->>', isExpired)
     const maxRequestReached = isEqual( 
       isNull(isExpired) ? phoneticUsage.monthlyRequestCount : 0,
       basicUser?.isActive ? MAX_RESPONSES.BASIC_TIER : MAX_RESPONSES.FREE_TIER
