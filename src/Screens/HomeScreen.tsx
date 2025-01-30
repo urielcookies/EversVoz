@@ -368,7 +368,7 @@ const HomeScreen = () => {
           )}
         </View>
         <View style={{ alignItems: 'flex-end' }}>
-          <TextElement>Usage {phoneticUsage.monthlyRequestCount}/{userTierResponses}</TextElement>
+          <TextElement>Créditos {phoneticUsage.monthlyRequestCount}/{userTierResponses}</TextElement>
         </View>
       </CardElement>
 
