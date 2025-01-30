@@ -22,7 +22,7 @@ const ProfileScreen = () => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const { user, logout, deleteUserAccount } = useUserSession();
   const [resetDate, setResetDate] = useState<Date | null>(null);
-  const [ subscription, setSubscription] = useState<Subscription | null>(null);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
 
   useEffect(() => {
     const initialFetch = async () => {
@@ -37,6 +37,8 @@ const ProfileScreen = () => {
       } else {
         setResetDate(resetDate);
       }
+
+
     }
     
     initialFetch();
@@ -77,22 +79,23 @@ const ProfileScreen = () => {
       {subscription && (
         <>
           <CardElement>
-            <View style={styles.subscription}>
-              <TextElement bold style={styles.text}>Fecha de renovación de la suscripción</TextElement>
-              <View style={styles.spacer} />
-              <TextElement style={styles.text}>
-                {subscription.expirationDate ? format(subscription.expirationDate, "d 'de' MMMM 'de' yyyy", { locale: es }) : 'No disponible'}
-              </TextElement>
-            </View>
-          </CardElement>
+          <TextElement bold style={styles.subscription}>Suscripción</TextElement>
+          <View style={styles.spacer} />
+          <View style={styles.row}>
+            <TextElement style={styles.text}>Renovación</TextElement>
+            <TextElement style={styles.text}>
+              {subscription.expirationDate ? format(subscription.expirationDate, "dd/MM/yyyy") : 'No disponible'}
+            </TextElement>
+          </View>
 
-          <CardElement>
-            <View style={styles.subscription}>
-              <TextElement bold style={styles.text}>Renueva Suscripción</TextElement>
-              <View style={styles.spacer} />
-              <TextElement style={styles.text}>{subscription.renews}</TextElement>
-            </View>
-          </CardElement>
+          <View style={styles.spacer} />
+
+          <View style={styles.row}>
+            <TextElement style={styles.text}>Renueva Suscripción</TextElement>
+            <TextElement style={styles.text}>{subscription.renews}</TextElement>
+          </View>
+        </CardElement>
+
         </>
       )}
 
@@ -144,7 +147,8 @@ const styles = StyleSheet.create({
   subscription: {
     justifyContent: 'space-between',
     alignItems: 'center',
-    textAlign: 'center'
+    textAlign: 'center',
+    fontSize: 18,
   }
 });
 
