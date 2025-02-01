@@ -18,7 +18,7 @@ export default {
       }
     },
     "ios": {
-      "buildNumber": '8',
+      "buildNumber": '9',
       "supportsTablet": true,
       "bundleIdentifier": "com.everscode.eversvoz",
       "entitlements": {
