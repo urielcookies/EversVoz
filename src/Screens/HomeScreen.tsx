@@ -16,7 +16,7 @@ import TextElement from '../Components/TextElement';
 import InputElement from '../Components/InputElement';
 import { supabase } from '../Utils/supabase';
 import { useUserSession } from '../Contexts/UserSessionContext';
-import { basicTierUser, fetchResetDate, resetCredits, updatePhoneticUsage } from '../Utils/adaptyFunctions';
+import { basicTierUser, fetchPhoneticUsage, resetCredits, updatePhoneticUsage } from '../Utils/adaptyFunctions';
 
 const EversVozAPIURL = __DEV__ ? process.env.EXPO_PUBLIC_EVERSVOZ_URL_DEV : process.env.EXPO_PUBLIC_EVERSVOZ_URL_PROD;
 const TRANSCRIBE_API = process.env.EXPO_PUBLIC_TRANSCRIBE_API;
@@ -30,7 +30,6 @@ interface Response {
 interface PhoneticUsage {
   monthlyRequestCount: number,
   totalRequestCount: number,
-  tierType: keyof typeof MAX_RESPONSES,
   resetMonthlyRequestsDate: Date | null;
 }
 
@@ -52,7 +51,6 @@ const HomeScreen = () => {
   const [phoneticUsage, setPhoneticUsage] = useState<PhoneticUsage>({
     monthlyRequestCount: 0,
     totalRequestCount: 0,
-    tierType: 'FREE_TIER',
     resetMonthlyRequestsDate: null,
   });
   const [response, setResponse] = useState<Response>({
@@ -95,7 +93,6 @@ const HomeScreen = () => {
             setPhoneticUsage({
               monthlyRequestCount: payload.new.monthly_request_count,
               totalRequestCount: payload.new.total_request_count,
-              tierType: payload.new.tier_type,
               resetMonthlyRequestsDate: payload.new.reset_monthly_requests_date, // Ensure correct property reference
             });
           }
@@ -122,26 +119,25 @@ const HomeScreen = () => {
   };
 
   const fetchUsageData = async (user: User) => {
-    const { data, error } = await supabase
-      .from('PhoneticUsage')
-      .select('monthly_request_count, total_request_count, tier_type, reset_monthly_requests_date')
-      .eq('user_id', user.id)
-      .single();
+    const phoneticUsage = await fetchPhoneticUsage(user);
+    const { data, error } = phoneticUsage;
 
-    if (error) {
-      console.error('Error fetching usage data:', error.message);
-      return error
-    } else {
+    if (data) {
       setPhoneticUsage({
         monthlyRequestCount: data.monthly_request_count,
         totalRequestCount: data.total_request_count,
-        tierType: data.tier_type,
         resetMonthlyRequestsDate: data.reset_monthly_requests_date,
       });
     }
+    if (error) {
+      console.error('Error fetching usage data:', error.message);
+      return error
+    }
+
+    return data;
   };
 
-  const incrementRequestCount = async (isExpired: IsExpired) => {
+  const incrementRequestCount = async (isExpired: Date | null) => {
     if (isNull(user)) return;
       const { error } = await supabase
       .from('PhoneticUsage')

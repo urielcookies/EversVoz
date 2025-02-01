@@ -116,4 +116,4 @@ const resetCredits = async ({ onMount, DBUpdate, user }: ResetCredits): Promise<
   return null;
 };
 
-export { basicTierUser, resetCredits, fetchResetDate, updatePhoneticUsage };
+export { basicTierUser, resetCredits, fetchResetDate, updatePhoneticUsage, fetchPhoneticUsage };
