@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import { User } from '@supabase/supabase-js';
+import { es } from 'date-fns/locale';
+import { format } from 'date-fns';
 import ButtonElement from '../Components/ButtonElement';
 import SwitchElement from '../Components/SwitchElement';
 import { useDarkMode } from '../Contexts/DarkModeContext';
 import CardElement from '../Components/CardElement';
 import TextElement from '../Components/TextElement';
 import { useUserSession } from '../Contexts/UserSessionContext';
-import { basicTierUser, fetchResetDate } from '../Utils/adaptyFunctions';
-import { es } from 'date-fns/locale';
-import { format } from 'date-fns';
+import { basicTierUser, fetchPhoneticUsage, fetchResetDate } from '../Utils/adaptyFunctions';
 
+
+const MAX_RESPONSES = {
+  FREE_TIER: 10,
+  BASIC_TIER: 200,
+}
 
 interface Subscription {
   active: boolean;
@@ -23,11 +28,18 @@ const ProfileScreen = () => {
   const { user, logout, deleteUserAccount } = useUserSession();
   const [resetDate, setResetDate] = useState<Date | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [usage, setUsage] = useState('0/10');
 
   useEffect(() => {
     const initialFetch = async () => {
       const resetDate =  await fetchResetDate(user as User);
+      const phoneticUsage = await fetchPhoneticUsage(user as User);
       const basicUser = await basicTierUser();
+      
+      const useage = phoneticUsage.data?.monthly_request_count || 0;
+      const maxLimit = basicUser?.isActive ? MAX_RESPONSES.BASIC_TIER : MAX_RESPONSES.FREE_TIER;
+      setUsage(`${useage}/${maxLimit}`);
+
       if (basicUser?.isActive) {
         setSubscription({
           active: basicUser.isActive,
@@ -37,8 +49,6 @@ const ProfileScreen = () => {
       } else {
         setResetDate(resetDate);
       }
-
-
     }
     
     initialFetch();
@@ -93,6 +103,13 @@ const ProfileScreen = () => {
           <View style={styles.row}>
             <TextElement style={styles.text}>Renueva Suscripción</TextElement>
             <TextElement style={styles.text}>{subscription.renews}</TextElement>
+          </View>
+
+          <View style={styles.spacer} />
+
+          <View style={styles.row}>
+            <TextElement style={styles.text}>Creditos</TextElement>
+            <TextElement style={styles.text}>{usage}</TextElement>
           </View>
         </CardElement>
 
