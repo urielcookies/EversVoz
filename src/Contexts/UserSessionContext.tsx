@@ -86,7 +86,7 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
 
   const emailCheck = async (email: string) => {
     const { data } = await supabase
-      .from('auth.users')
+      .from('PhoneticUsage')
       .select('id')
       .eq('email', email)
       .single();
@@ -136,7 +136,8 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
           return { error: deleteError };
         }
       } else {
-        const { error: insertError } = await supabase.from('PhoneticUsage').insert([{ user_id: data.user.id }]);
+        const { error: insertError } = await supabase.from('PhoneticUsage')
+          .insert([{ user_id: data.user.id, email: data.user.email, created_at: new Date() }]);
         if (insertError) {
           console.error(`Error inserting into PhoneticUsage: ${insertError.message}`);
           return { error: insertError };

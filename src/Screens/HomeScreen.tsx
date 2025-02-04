@@ -185,6 +185,7 @@ const HomeScreen = () => {
   };
 
   const handleSubmit = async () => {
+    setPronounciationLoading(true);
     if (isEmpty(inputValue)) {
       setError('El campo de entrada no puede estar vacío');
       return;
@@ -195,7 +196,7 @@ const HomeScreen = () => {
       DBUpdate: false,
       user: user as User
     });
-    console.log('isExpired-->>', isExpired)
+
     const maxRequestReached = isEqual( 
       isNull(isExpired) ? phoneticUsage.monthlyRequestCount : 0,
       basicUser?.isActive ? MAX_RESPONSES.BASIC_TIER : MAX_RESPONSES.FREE_TIER
@@ -210,11 +211,13 @@ const HomeScreen = () => {
           : 'una fecha desconocida'
         } para uso para reiniciar`,
       );
+      setPronounciationLoading(false);
       return;
     }
 
     if (maxRequestReached && !basicUser?.isActive) {
       payup();
+      setPronounciationLoading(false);
       return;
     }
 
@@ -231,7 +234,6 @@ const HomeScreen = () => {
 
   const getTranscription = async () => {
     try {
-      setPronounciationLoading(true);
       const results = await axios.post<Response>(`${EversVozAPIURL}/transcribe`, {text: inputValue}, {
         headers: {
           'Content-Type': 'application/json',
