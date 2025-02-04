@@ -114,6 +114,7 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
         const { error: insertError } = await supabase.from('PhoneticUsage').insert([{
           user_id: data.user.id,
           tier_type: archivedUser.tier_type,
+          email: archivedUser.email,
           monthly_request_count: archivedUser.monthly_request_count,
           total_request_count: archivedUser.total_request_count,
           reset_monthly_requests_date: archivedUser.reset_monthly_requests_date,
@@ -137,7 +138,12 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
         }
       } else {
         const { error: insertError } = await supabase.from('PhoneticUsage')
-          .insert([{ user_id: data.user.id, email: data.user.email, created_at: new Date() }]);
+          .insert([{
+            user_id: data.user.id,
+            email: data.user.email,
+            updated_at: new Date(),
+            created_at: new Date()
+          }]);
         if (insertError) {
           console.error(`Error inserting into PhoneticUsage: ${insertError.message}`);
           return { error: insertError };
@@ -145,6 +151,9 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
       }
       setSession(data.session);
       setUser(data.user);
+      if (data.user.email) {
+        adapty.identify(data.user.email);
+      }
       return { error: null };
     }
     return { error: null };
