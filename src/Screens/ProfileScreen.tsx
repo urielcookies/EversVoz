@@ -82,6 +82,13 @@ const ProfileScreen = () => {
             <TextElement style={styles.text}>
               {resetDate ? format(resetDate, "d 'de' MMMM 'de' yyyy", { locale: es }) : 'No disponible'}
             </TextElement>
+
+            <View style={styles.spacer} />
+
+            <View style={styles.row}>
+              <TextElement style={styles.text}>Creditos</TextElement>
+              <TextElement style={styles.text}>&nbsp;{usage}</TextElement>
+            </View>
           </View>
         </CardElement>
       )}
@@ -109,7 +116,7 @@ const ProfileScreen = () => {
 
           <View style={styles.row}>
             <TextElement style={styles.text}>Creditos</TextElement>
-            <TextElement style={styles.text}>{usage}</TextElement>
+            <TextElement style={styles.text}>&nbsp;{usage}</TextElement>
           </View>
         </CardElement>
 
