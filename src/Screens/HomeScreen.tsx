@@ -188,6 +188,7 @@ const HomeScreen = () => {
     setPronounciationLoading(true);
     if (isEmpty(inputValue)) {
       setError('El campo de entrada no puede estar vacío');
+      setPronounciationLoading(false);
       return;
     }
     const basicUser = await basicTierUser();
