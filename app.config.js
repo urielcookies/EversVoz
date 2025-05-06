@@ -2,7 +2,7 @@ export default {
   "expo": {
     "name": "EversVoz",
     "slug": "EversVoz",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
@@ -18,7 +18,7 @@ export default {
       }
     },
     "ios": {
-      "buildNumber": '10',
+      "buildNumber": '11',
       "supportsTablet": true,
       "bundleIdentifier": "com.everscode.eversvoz",
       "entitlements": {
