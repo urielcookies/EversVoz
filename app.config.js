@@ -26,8 +26,9 @@ export default {
       }
     },
     "android": {
+      "package": "com.everscode.eversvoz",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       }
     },
