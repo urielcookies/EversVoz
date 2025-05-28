@@ -5,6 +5,8 @@ import { supabase, supabaseAdmin } from '../Utils/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { adapty } from 'react-native-adapty';
 
+import { getUserByEmail, createUserAccount as PBcreateUserAccount, loginUser as PBloginUser} from '../Utils/pocketbaseFunctions';
+
 // Define the interface for the context type
 interface UserSessionContextType {
   user: User | null;
@@ -44,7 +46,13 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
           if (error) throw error;
           setUser(user);
           if (user?.email) {
-            adapty.identify(user.email);
+            await adapty.identify(user.email);
+            // ------------------TEMPORARY--------------------
+            const pocketbaseUser = await getUserByEmail(user.email);
+            if (!pocketbaseUser) {
+              logout();
+            }
+            // -----------------------------------------------
           }
         }
         setSession(session);
@@ -62,7 +70,13 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
       console.error('Login error:', error.message);
       return { error };
     }
-
+    // ------------------TEMPORARY--------------------
+    const pocketbaseUser = await getUserByEmail(email);
+    if (!pocketbaseUser) {
+      await PBcreateUserAccount(email, password);
+    }
+    PBloginUser(email, password);
+    // -----------------------------------------------
     setSession(data.session);
     setUser(data.user);
     if (data.user.email) {
@@ -81,6 +95,7 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
     setSession(null);
     setUser(null);
     await adapty.logout();
+    await AsyncStorage.clear();
     return { error: null };
   };
 
@@ -99,6 +114,9 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
       console.error('Create user error:', error.message);
       return { error };
     }
+    // ------------------TEMPORARY--------------------
+    PBcreateUserAccount(email, password);
+    // -----------------------------------------------
     return { error: null };
   };
 
@@ -179,8 +197,7 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
           return { error: deleteError };
         }
 
-        await logout();
-        await AsyncStorage.clear();
+        logout();
         return { error: null };
       } catch (error) {
         console.error('Error deleting account:', error);
