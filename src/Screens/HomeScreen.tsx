@@ -318,9 +318,9 @@ const HomeScreen = () => {
       const explanation = explanationParts.join('\n-');
 
       return (
-        <View key={index} style={styles.wordSection}>
-          <TextElement style={styles.wordTitle}>{wordPart.trim()}</TextElement>
-          <TextElement style={styles.explanationText}>
+        <View key={index} style={dynamicStyles.wordSection}>
+          <TextElement style={dynamicStyles.wordTitle}>{wordPart.trim()}</TextElement>
+          <TextElement style={dynamicStyles.explanationText}>
             {explanation.trim()}
           </TextElement>
         </View>
@@ -328,6 +328,7 @@ const HomeScreen = () => {
     });
   };
 
+  const dynamicStyles = styles(isDarkMode); 
 
   return (
     <ScrollViewElement>
@@ -340,7 +341,7 @@ const HomeScreen = () => {
           error={!isEmpty(error)}
           errorMessage={!isEmpty(error) ? error : ''} />
 
-        <View style={styles.buttonContainer}>
+        <View style={dynamicStyles.buttonContainer}>
           <ButtonElement
             title={pronounciationLoading ? '' : 'Pronuncia'}
             loading={pronounciationLoading}
@@ -366,58 +367,72 @@ const HomeScreen = () => {
               icon='play-circle-o' />
           )}
         </View>
-        <View style={{ alignItems: 'flex-end' }}>
-          <TextElement>Créditos {phoneticUsage.monthlyRequestCount}/{userTierResponses}</TextElement>
+
+        <View style={dynamicStyles.creditsContainer}>
+          <TextElement style={dynamicStyles.creditsText}>
+            Créditos: {phoneticUsage.monthlyRequestCount} / {userTierResponses}
+          </TextElement>
         </View>
       </CardElement>
 
+      {isEmpty(response.english_phrase) && !pronounciationLoading && isEmpty(error) && (
+        <CardElement style={dynamicStyles.emptyStateCard}>
+            <TextElement style={dynamicStyles.emptyStateTitle}>
+                Lista para ayudarte
+            </TextElement>
+            <TextElement style={dynamicStyles.emptyStateText}>
+                Ingresa una frase en el campo de arriba y presiona "Pronuncia" para obtener la transcripción fonética y la guía de pronunciación.
+            </TextElement>
+        </CardElement>
+      )}
+    
       {!isEmpty(response.english_phrase) && (
       <CardElement>
         {!isNull(response.user_input) && (
-          <View style={[styles.phraseContainer, {borderBottomColor: '#eee', borderBottomWidth: 1, paddingBottom: 16,}]}>
+          <View style={[dynamicStyles.phraseContainer, {borderBottomColor: '#eee', borderBottomWidth: 1, paddingBottom: 16,}]}>
             <TextElement
-              style={[styles.label, {color: isDarkMode ? '#999999' : '#666'}]}>
+              style={[dynamicStyles.label, {color: isDarkMode ? '#999999' : '#666'}]}>
               Frase original:
             </TextElement>
             <TextElement
-              style={[styles.phraseText, {color: isDarkMode ? '#FFFFFF' : '#333'}]}>
+              style={[dynamicStyles.phraseText, {color: isDarkMode ? '#FFFFFF' : '#333'}]}>
               {response.user_input}
             </TextElement>
           </View>
         )}
 
-          <View style={styles.phraseContainer}>
+          <View style={dynamicStyles.phraseContainer}>
             <TextElement
-              style={[styles.label, {color: isDarkMode ? '#999999' : '#666'}]}>
+              style={[dynamicStyles.label, {color: isDarkMode ? '#999999' : '#666'}]}>
               Frase en inglés:
             </TextElement>
             <TextElement
-              style={[styles.phraseText, {color: isDarkMode ? '#FFFFFF' : '#333'}]}>
+              style={[dynamicStyles.phraseText, {color: isDarkMode ? '#FFFFFF' : '#333'}]}>
               {response.english_phrase}
             </TextElement>
           </View>
 
-          <View style={[styles.phoneticContainer,
+          <View style={[dynamicStyles.phoneticContainer,
             {
               backgroundColor: isDarkMode ? '#2A2A2A' : '#F0F7FF',
               borderColor: isDarkMode ? '#444444' : '#E0E0E0',
             },
           ]}>
-          <TextElement style={[styles.label,
+          <TextElement style={[dynamicStyles.label,
               { color: isDarkMode ? '#999999' : '#666666' },
           ]}>
             Transcripción fonética:
           </TextElement>
-          <TextElement style={[styles.phoneticText,
+          <TextElement style={[dynamicStyles.phoneticText,
             { color: isDarkMode ? '#62AFFF' : '#4A90E2' },
           ]}>
             {getPhoneticText(response.phonetic_explanation)}
           </TextElement>
         </View>
 
-          <View style={styles.explanationContainer}>
+          <View style={dynamicStyles.explanationContainer}>
             <TextElement
-              style={[styles.label, {color: isDarkMode ? '#999999' : '#666'}]}>
+              style={[dynamicStyles.label, {color: isDarkMode ? '#999999' : '#666'}]}>
               Guía de pronunciación:
             </TextElement>
             {renderWordExplanation(response.phonetic_explanation)}
@@ -428,7 +443,7 @@ const HomeScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (isDarkMode: boolean) => StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -475,6 +490,34 @@ const styles = StyleSheet.create({
   explanationText: {
     fontSize: 15,
     lineHeight: 22,
+  },
+  creditsContainer: {
+    alignItems: 'flex-end',
+    marginTop: 12,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: isDarkMode ? '#3A3A3A' : '#E0E0E0',
+  },
+  creditsText: {
+    fontSize: 13,
+    color: isDarkMode ? '#999999' : '#757575',
+  },
+  emptyStateCard: {
+    alignItems: 'center',
+    paddingVertical: 30,
+    backgroundColor: isDarkMode ? '#2C2C2C' : '#F9F9F9',
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: isDarkMode ? '#E0E0E0' : '#333333',
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: isDarkMode ? '#AAAAAA' : '#666666',
+    textAlign: 'center',
+    paddingHorizontal: 20,
   },
 });
 
