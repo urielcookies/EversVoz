@@ -10,7 +10,7 @@ interface DarkModeContextProps {
 const DarkModeContext = createContext<DarkModeContextProps | undefined>(undefined);
 
 export const DarkModeProvider = ({ children }: { children: ReactNode }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   useEffect(() => {
     const getDarkMode = async () => {
