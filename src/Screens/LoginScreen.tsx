@@ -108,6 +108,15 @@ const LoginScreen = (props: LoginScreenProps) => {
         </TextElement>
       </TextElement>
 
+      <TextElement style={styles.footerText}>
+        <TextElement
+          bold
+          color="primary"
+          onPress={() => navigation.navigate('ForgotPassword')}>
+          ¿Has olvidado tu contraseña?
+        </TextElement>
+      </TextElement>
+
       
       {!isEmpty(showResendOTP) && (
         <TextElement style={styles.footerText}>

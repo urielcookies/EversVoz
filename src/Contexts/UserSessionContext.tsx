@@ -71,12 +71,16 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
       return { error };
     }
     // ------------------TEMPORARY--------------------
-    const pocketbaseUser = await getUserByEmail(email);
-    if (!pocketbaseUser) {
-      await PBcreateUserAccount(email, password);
+    try {
+      const pocketbaseUser = await getUserByEmail(email);
+      if (!pocketbaseUser) {
+        await PBcreateUserAccount(email, password);
+      }
+      await PBloginUser(email, password);
+    } catch (pocketbaseError) {
+      console.error('PocketBase login/setup failed:', pocketbaseError);
     }
-    PBloginUser(email, password);
-    // -----------------------------------------------
+    // ------------------------------------------------
     setSession(data.session);
     setUser(data.user);
     if (data.user.email) {
@@ -115,7 +119,11 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
       return { error };
     }
     // ------------------TEMPORARY--------------------
-    PBcreateUserAccount(email, password);
+    try {
+      await PBcreateUserAccount(email, password);
+    } catch (pocketbaseError) {
+      console.error('PocketBase user creation failed:', pocketbaseError);
+    }
     // -----------------------------------------------
     return { error: null };
   };
