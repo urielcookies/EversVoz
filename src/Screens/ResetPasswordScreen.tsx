@@ -3,7 +3,7 @@ import { StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { isEmpty } from 'lodash';
-import PocketBase from 'pocketbase';
+// import PocketBase from 'pocketbase';
 
 import { supabase } from '../Utils/supabase';
 import { useDarkMode } from '../Contexts/DarkModeContext';
@@ -64,27 +64,27 @@ const ResetPasswordScreen = ({ navigation }: ResetPasswordScreenProps) => {
       setError(updateError.message); // Set general error state for Supabase errors
     } else {
       // ------------------TEMPORARY--------------------
-      try {
-        if (data.user?.email) {
-          const pb = new PocketBase(process.env.EXPO_PUBLIC_POCKETBASE_API);
-          await pb.collection('_superusers').authWithPassword(
-            process.env.EXPO_PUBLIC_POCKETBASE_SUPERUSER_EMAIL as string,
-            process.env.EXPO_PUBLIC_POCKETBASE_SUPERUSER_PASSWORD as string,
-          );
-          const user = await pb.collection('eversvoz_users').getFirstListItem(`email="${data.user.email}"`);
-          await pb.collection('eversvoz_users').update(user.id, {
-            password: newPassword,
-            passwordConfirm: newPassword,
-          });
-        }
-      } catch (pocketbaseError) {
-        console.error('PocketBase update failed:', pocketbaseError);
-      } finally {
-        setIsLoading(false);
-        setMessage('¡Contraseña actualizada con éxito! Por favor, inicia sesión.');
-        Alert.alert('Éxito', '¡Contraseña actualizada con éxito! Por favor, inicia sesión.');
-        navigation.navigate('Login');
-      }
+      // try {
+      //   if (data.user?.email) {
+      //     const pb = new PocketBase(process.env.EXPO_PUBLIC_POCKETBASE_API);
+      //     await pb.collection('_superusers').authWithPassword(
+      //       process.env.EXPO_PUBLIC_POCKETBASE_SUPERUSER_EMAIL as string,
+      //       process.env.EXPO_PUBLIC_POCKETBASE_SUPERUSER_PASSWORD as string,
+      //     );
+      //     const user = await pb.collection('eversvoz_users').getFirstListItem(`email="${data.user.email}"`);
+      //     await pb.collection('eversvoz_users').update(user.id, {
+      //       password: newPassword,
+      //       passwordConfirm: newPassword,
+      //     });
+      //   }
+      // } catch (pocketbaseError) {
+      //   console.error('PocketBase update failed:', pocketbaseError);
+      // } finally {
+      //   setIsLoading(false);
+      //   setMessage('¡Contraseña actualizada con éxito! Por favor, inicia sesión.');
+      //   Alert.alert('Éxito', '¡Contraseña actualizada con éxito! Por favor, inicia sesión.');
+      //   navigation.navigate('Login');
+      // }
       // ------------------------------------------------
     }
   };

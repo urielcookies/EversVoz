@@ -5,7 +5,7 @@ import { supabase, supabaseAdmin } from '../Utils/supabase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { adapty } from 'react-native-adapty';
 
-import { getUserByEmail, createUserAccount as PBcreateUserAccount, loginUser as PBloginUser} from '../Utils/pocketbaseFunctions';
+// import { getUserByEmail, createUserAccount as PBcreateUserAccount, loginUser as PBloginUser} from '../Utils/pocketbaseFunctions';
 
 // Define the interface for the context type
 interface UserSessionContextType {
@@ -48,10 +48,10 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
           if (user?.email) {
             await adapty.identify(user.email);
             // ------------------TEMPORARY--------------------
-            const pocketbaseUser = await getUserByEmail(user.email);
-            if (!pocketbaseUser) {
-              logout();
-            }
+            // const pocketbaseUser = await getUserByEmail(user.email);
+            // if (!pocketbaseUser) {
+            //   logout();
+            // }
             // -----------------------------------------------
           }
         }
@@ -71,15 +71,15 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
       return { error };
     }
     // ------------------TEMPORARY--------------------
-    try {
-      const pocketbaseUser = await getUserByEmail(email);
-      if (!pocketbaseUser) {
-        await PBcreateUserAccount(email, password);
-      }
-      await PBloginUser(email, password);
-    } catch (pocketbaseError) {
-      console.error('PocketBase login/setup failed:', pocketbaseError);
-    }
+    // try {
+    //   const pocketbaseUser = await getUserByEmail(email);
+    //   if (!pocketbaseUser) {
+    //     await PBcreateUserAccount(email, password);
+    //   }
+    //   await PBloginUser(email, password);
+    // } catch (pocketbaseError) {
+    //   console.error('PocketBase login/setup failed:', pocketbaseError);
+    // }
     // ------------------------------------------------
     setSession(data.session);
     setUser(data.user);
@@ -119,11 +119,11 @@ export const UserSessionProvider = ({ children }: UserSessionProviderProps) => {
       return { error };
     }
     // ------------------TEMPORARY--------------------
-    try {
-      await PBcreateUserAccount(email, password);
-    } catch (pocketbaseError) {
-      console.error('PocketBase user creation failed:', pocketbaseError);
-    }
+    // try {
+    //   await PBcreateUserAccount(email, password);
+    // } catch (pocketbaseError) {
+    //   console.error('PocketBase user creation failed:', pocketbaseError);
+    // }
     // -----------------------------------------------
     return { error: null };
   };
